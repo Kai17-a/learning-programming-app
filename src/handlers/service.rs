@@ -39,6 +39,7 @@ impl LanguageHandlerService {
     }
     
     /// Check if a file extension is supported
+    #[allow(dead_code)]
     pub async fn is_supported(&self, extension: impl AsRef<str>) -> bool {
         let ext = extension.as_ref().to_lowercase();
         let handlers = self.handlers.read().await;
@@ -52,6 +53,7 @@ impl LanguageHandlerService {
     }
     
     /// Get the number of registered handlers
+    #[allow(dead_code)]
     pub async fn handler_count(&self) -> usize {
         let handlers = self.handlers.read().await;
         handlers.len()

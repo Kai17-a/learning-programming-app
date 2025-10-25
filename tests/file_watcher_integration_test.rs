@@ -1,5 +1,6 @@
 use anyhow::Result;
-use learning_programming_app::core::{FileChangeEventHandler, FileWatcherService};
+use learning_programming_app::core::{FileWatcherService};
+use learning_programming_app::core::event_handler::FileChangeEventHandler;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;

@@ -6,11 +6,12 @@ use console::{style, Term};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::mpsc;
-use tracing::{info, warn};
+use tracing::info;
 
 #[derive(Clone)]
 pub struct CommandLineInterface {
     app_service: Arc<ApplicationService>,
+    #[allow(dead_code)]
     term: Term,
 }
 
@@ -313,15 +314,18 @@ impl CommandLineInterface {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn is_watching(&self) -> bool {
         self.app_service.watcher.is_watching()
     }
 
+    #[allow(dead_code)]
     pub async fn get_watched_directories(&self) -> Vec<PathBuf> {
         self.app_service.watcher.get_watched_directories().await
     }
 
     /// Get system status information
+    #[allow(dead_code)]
     pub async fn get_system_status(&self) -> crate::core::SystemStatus {
         self.app_service.get_system_status().await
     }

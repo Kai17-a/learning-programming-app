@@ -3,7 +3,8 @@ use std::fs;
 use tempfile::TempDir;
 
 use learning_programming_app::core::{AutoExecutorService, HistoryManagerService};
-use learning_programming_app::handlers::{LanguageHandlerService, GoHandler, LanguageHandler};
+use learning_programming_app::handlers::{LanguageHandlerService, GoHandler};
+use learning_programming_app::handlers::base::LanguageHandler;
 
 #[tokio::test]
 async fn test_go_handler_registration() {

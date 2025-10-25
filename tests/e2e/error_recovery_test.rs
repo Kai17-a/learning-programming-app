@@ -1,6 +1,5 @@
 use anyhow::Result;
 use learning_programming_app::core::ApplicationService;
-use std::path::Path;
 use tempfile::TempDir;
 use tokio::fs;
 use tokio::time::{sleep, Duration};
@@ -121,7 +120,7 @@ async fn test_file_watcher_error_continuation() -> Result<()> {
     assert!(detected_changes.len() >= 3, "File watcher should continue detecting changes after errors");
     
     // Execute all files to verify system continues working
-    for (filename, content, expected_success) in test_files {
+    for (filename, _content, expected_success) in test_files {
         let file_path = section_dir.join(filename);
         let result = app_service.executor.execute_file(&file_path).await;
         

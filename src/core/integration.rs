@@ -115,11 +115,13 @@ impl ApplicationService {
 #[derive(Debug, Clone)]
 pub struct SystemStatus {
     pub database_connected: bool,
+    #[allow(dead_code)]
     pub watcher_active: bool,
     pub registered_handlers: Vec<String>,
 }
 
 impl SystemStatus {
+    #[allow(dead_code)]
     pub fn is_healthy(&self) -> bool {
         self.database_connected && !self.registered_handlers.is_empty()
     }

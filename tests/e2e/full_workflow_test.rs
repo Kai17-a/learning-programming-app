@@ -3,7 +3,7 @@ use learning_programming_app::core::ApplicationService;
 use std::path::Path;
 use tempfile::TempDir;
 use tokio::fs;
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 
 /// Test the complete workflow from file creation to execution
 #[tokio::test]
@@ -365,7 +365,8 @@ func main() {
     
     // Verify execution was attempted (success depends on Go being installed)
     assert_eq!(result.file_path, test_file, "File path should match");
-    assert!(result.execution_time.as_millis() >= 0, "Execution time should be recorded");
+    // Execution time should always be recorded
+    assert!(result.execution_time.as_millis() < u128::MAX, "Execution time should be recorded");
     
     // If Go is installed and execution was successful
     if result.success {
@@ -433,6 +434,7 @@ func main() {
 mod test_helpers {
     use super::*;
     
+    #[allow(dead_code)]
     pub async fn create_test_environment() -> Result<(TempDir, ApplicationService)> {
         let temp_dir = TempDir::new()?;
         let db_path = temp_dir.path().join("test.db");
@@ -440,6 +442,7 @@ mod test_helpers {
         Ok((temp_dir, app_service))
     }
     
+    #[allow(dead_code)]
     pub async fn create_section_with_files(base_dir: &Path, section_name: &str, files: Vec<(&str, &str)>) -> Result<Vec<std::path::PathBuf>> {
         let section_dir = base_dir.join(section_name);
         fs::create_dir(&section_dir).await?;

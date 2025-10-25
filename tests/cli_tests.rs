@@ -1,4 +1,6 @@
-use learning_programming_app::cli::{Cli, Commands, CommandLineInterface, ShutdownHandler};
+use learning_programming_app::cli::{CommandLineInterface};
+use learning_programming_app::cli::commands::{Cli, Commands};
+use learning_programming_app::cli::shutdown::ShutdownHandler;
 use clap::Parser;
 use std::path::PathBuf;
 use tempfile::TempDir;

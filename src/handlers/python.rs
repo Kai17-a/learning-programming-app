@@ -22,6 +22,7 @@ impl PythonHandler {
     }
     
     /// Create a new PythonHandler with custom python command
+    #[allow(dead_code)]
     pub fn with_command(command: impl Into<String>) -> Self {
         Self {
             python_command: command.into(),

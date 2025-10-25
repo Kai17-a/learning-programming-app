@@ -111,6 +111,7 @@ impl AutoExecutorService {
     }
     
     /// Get the language handler for a specific file extension
+    #[allow(dead_code)]
     pub async fn get_language_handler(
         &self, 
         file_extension: impl AsRef<str>
@@ -156,6 +157,7 @@ impl AutoExecutorService {
     }
     
     /// Check if a file extension is supported
+    #[allow(dead_code)]
     pub async fn is_supported_file(&self, file_path: impl AsRef<Path>) -> bool {
         let path = file_path.as_ref();
         
@@ -167,11 +169,13 @@ impl AutoExecutorService {
     }
     
     /// Get all supported file extensions
+    #[allow(dead_code)]
     pub async fn get_supported_extensions(&self) -> Vec<String> {
         self.language_handlers.get_supported_extensions().await
     }
     
     /// Execute a file with timeout to prevent hanging
+    #[allow(dead_code)]
     pub async fn execute_file_with_timeout(&self, file_path: impl AsRef<Path>, timeout_secs: u64) -> ExecutionResult {
         let path = file_path.as_ref().to_path_buf();
         
@@ -190,6 +194,7 @@ impl AutoExecutorService {
     }
     
     /// Handle system errors and ensure continuation
+    #[allow(dead_code)]
     pub fn handle_system_error(&self, error: &anyhow::Error) -> String {
         self.error_handler.handle_system_error(error)
     }

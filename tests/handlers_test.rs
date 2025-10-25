@@ -3,7 +3,8 @@ use std::sync::Arc;
 use tempfile::NamedTempFile;
 use std::io::Write;
 
-use learning_programming_app::handlers::{LanguageHandler, LanguageHandlerService, PythonHandler};
+use learning_programming_app::handlers::{LanguageHandlerService, PythonHandler};
+use learning_programming_app::handlers::base::LanguageHandler;
 
 // Python Handler Tests
 #[tokio::test]

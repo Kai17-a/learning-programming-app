@@ -3,9 +3,10 @@ use std::path::PathBuf;
 use std::fs;
 use tempfile::TempDir;
 
-use learning_programming_app::core::{AutoExecutorService, ExecutionResult, HistoryManagerService};
+use learning_programming_app::core::{AutoExecutorService, HistoryManagerService};
+use learning_programming_app::core::models::ExecutionResult;
 use learning_programming_app::handlers::{LanguageHandlerService, PythonHandler};
-use learning_programming_app::utils::DisplayService;
+use learning_programming_app::utils::display::DisplayService;
 
 #[tokio::test]
 async fn test_auto_executor_service_creation() {
@@ -219,7 +220,8 @@ async fn test_get_language_handler() {
     let python_handler = Arc::new(PythonHandler::new());
     handler_service.register_handler("py", python_handler).await;
     
-    let executor = AutoExecutorService::new(handler_service);
+    let history_manager = Arc::new(HistoryManagerService::new("test.db").await.unwrap());
+    let executor = AutoExecutorService::new(handler_service, history_manager);
     
     let handler = executor.get_language_handler("py").await;
     assert!(handler.is_some());
@@ -230,16 +232,16 @@ async fn test_get_language_handler() {
 
 #[test]
 fn test_display_service_creation() {
-    let display = DisplayService::new();
+    let _display = DisplayService::new();
     // Test that the service is created successfully
     
-    let display_custom = DisplayService::with_settings(false, true);
+    let _display_custom = DisplayService::with_settings(false, true);
     // Test custom settings creation
 }
 
 #[test]
 fn test_display_service_default() {
-    let display = DisplayService::default();
+    let _display = DisplayService::default();
     // Test that default creation works
 }
 

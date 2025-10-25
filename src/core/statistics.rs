@@ -4,13 +4,14 @@ use std::sync::Arc;
 use tracing::info;
 
 use crate::core::history::HistoryManagerService;
-use crate::core::models::ExecutionStats;
 
 /// StatisticsService provides comprehensive statistics display and analysis
+#[allow(dead_code)]
 pub struct StatisticsService {
     pub history_manager: Arc<HistoryManagerService>,
 }
 
+#[allow(dead_code)]
 impl StatisticsService {
     /// Create a new StatisticsService
     pub fn new(history_manager: Arc<HistoryManagerService>) -> Self {

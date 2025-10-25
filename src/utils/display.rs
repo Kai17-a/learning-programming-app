@@ -5,12 +5,14 @@ use chrono::Utc;
 use crate::core::models::{ExecutionResult, ExecutionStats};
 
 /// Service for displaying execution results with beautiful formatting
+#[allow(dead_code)]
 pub struct DisplayService {
     term: Term,
     show_timestamps: bool,
     show_execution_time: bool,
 }
 
+#[allow(dead_code)]
 impl DisplayService {
     /// Create a new DisplayService
     pub fn new() -> Self {

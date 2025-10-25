@@ -1,10 +1,9 @@
 use anyhow::Result;
 use learning_programming_app::core::ApplicationService;
 use learning_programming_app::cli::CommandLineInterface;
-use std::path::Path;
 use tempfile::TempDir;
 use tokio::fs;
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 
 /// Test complete system integration with CLI interface
 #[tokio::test]

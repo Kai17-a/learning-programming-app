@@ -27,6 +27,7 @@ impl Default for ApplicationConfig {
 
 impl ApplicationConfig {
     /// Load configuration from file, falling back to defaults if file doesn't exist
+    #[allow(dead_code)]
     pub fn load_from_file(path: impl AsRef<std::path::Path>) -> anyhow::Result<Self> {
         let path = path.as_ref();
         if path.exists() {
@@ -39,6 +40,7 @@ impl ApplicationConfig {
     }
 
     /// Save configuration to file
+    #[allow(dead_code)]
     pub fn save_to_file(&self, path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
         let path = path.as_ref();
         if let Some(parent) = path.parent() {
@@ -50,6 +52,7 @@ impl ApplicationConfig {
     }
 
     /// Check if a file extension is supported
+    #[allow(dead_code)]
     pub fn is_supported_extension(&self, extension: &str) -> bool {
         self.supported_extensions.contains(&extension.to_string())
     }

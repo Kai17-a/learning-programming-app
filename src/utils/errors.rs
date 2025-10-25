@@ -52,6 +52,7 @@ impl ErrorHandler {
     }
     
     /// Formats a generic error message with consistent styling
+    #[allow(dead_code)]
     pub fn format_error_message(&self, error: &Error) -> String {
         format!("{} {}", style("Error:").red().bold(), error)
     }
@@ -83,6 +84,7 @@ impl ErrorHandler {
     }
     
     /// Handles timeout errors when code execution takes too long
+    #[allow(dead_code)]
     pub fn handle_timeout_error(&self, file_path: impl AsRef<Path>, timeout_secs: u64) -> String {
         let path_str = file_path.as_ref().display();
         warn!("Execution timeout for {}: {} seconds", path_str, timeout_secs);
@@ -96,6 +98,7 @@ impl ErrorHandler {
     }
     
     /// Handles permission errors when accessing files or directories
+    #[allow(dead_code)]
     pub fn handle_permission_error(&self, path: impl AsRef<Path>) -> String {
         let path_str = path.as_ref().display();
         error!("Permission denied: {}", path_str);
@@ -122,6 +125,7 @@ impl ErrorHandler {
 
 /// Custom error types for the application
 #[derive(Debug, thiserror::Error)]
+#[allow(dead_code)]
 pub enum AppError {
     #[error("File watching error: {0}")]
     FileWatch(#[from] notify::Error),
@@ -155,21 +159,25 @@ impl AppError {
     }
     
     /// Creates a new syntax error
+    #[allow(dead_code)]
     pub fn syntax(msg: impl Into<String>) -> Self {
         Self::Syntax(msg.into())
     }
     
     /// Creates a new runtime error
+    #[allow(dead_code)]
     pub fn runtime(msg: impl Into<String>) -> Self {
         Self::Runtime(msg.into())
     }
     
     /// Creates a new timeout error
+    #[allow(dead_code)]
     pub fn timeout(timeout: u64) -> Self {
         Self::Timeout { timeout }
     }
     
     /// Creates a new permission error
+    #[allow(dead_code)]
     pub fn permission(path: impl AsRef<Path>) -> Self {
         Self::Permission {
             path: path.as_ref().display().to_string(),

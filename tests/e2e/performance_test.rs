@@ -1,6 +1,5 @@
 use anyhow::Result;
 use learning_programming_app::core::ApplicationService;
-use std::path::Path;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
 use tokio::fs;

@@ -99,6 +99,7 @@ impl ExecutionStats {
         }
     }
 
+    #[allow(dead_code)]
     pub fn failure_rate(&self) -> f64 {
         if self.total_executions == 0 {
             0.0
@@ -132,6 +133,7 @@ impl ValidationResult {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_warnings(mut self, warnings: Vec<String>) -> Self {
         self.warnings = warnings;
         self

@@ -6,6 +6,7 @@ use tracing::{debug, info, warn, error};
 use crate::utils::errors::ErrorHandler;
 
 /// Handler for processing file change events with filtering capabilities
+#[allow(dead_code)]
 pub struct FileChangeEventHandler {
     supported_extensions: HashSet<String>,
     event_receiver: Option<mpsc::UnboundedReceiver<PathBuf>>,
@@ -13,6 +14,7 @@ pub struct FileChangeEventHandler {
     error_handler: ErrorHandler,
 }
 
+#[allow(dead_code)]
 impl FileChangeEventHandler {
     /// Create a new event handler with default supported extensions
     pub fn new() -> Self {
@@ -256,12 +258,14 @@ impl Default for FileChangeEventHandler {
 
 /// Statistics about files in a directory
 #[derive(Debug, Default, Clone)]
+#[allow(dead_code)]
 pub struct FileStats {
     pub total_files: usize,
     pub supported_files: usize,
     pub unsupported_files: usize,
 }
 
+#[allow(dead_code)]
 impl FileStats {
     /// Get the percentage of supported files
     pub fn support_percentage(&self) -> f64 {

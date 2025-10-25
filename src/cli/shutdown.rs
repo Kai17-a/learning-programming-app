@@ -42,6 +42,7 @@ impl ShutdownHandler {
     }
 
     /// Perform cleanup operations
+    #[allow(dead_code)]
     pub async fn cleanup(&self) -> Result<()> {
         println!("{} Performing cleanup...", style("🧹").bold());
         
@@ -57,6 +58,7 @@ impl ShutdownHandler {
     }
 
     /// Handle graceful shutdown with cleanup
+    #[allow(dead_code)]
     pub async fn handle_shutdown(&self) -> Result<()> {
         self.wait_for_shutdown().await?;
         self.cleanup().await?;
@@ -92,11 +94,13 @@ impl Default for ShutdownHandler {
 }
 
 /// Resource cleanup trait for components that need cleanup on shutdown
+#[allow(dead_code)]
 pub trait Cleanup {
     fn cleanup(&self) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + '_>>;
 }
 
 /// Manages multiple resources that need cleanup
+#[allow(dead_code)]
 pub struct ResourceManager {
     resources: Vec<Box<dyn Cleanup + Send + Sync>>,
 }
@@ -108,10 +112,12 @@ impl ResourceManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add_resource(&mut self, resource: Box<dyn Cleanup + Send + Sync>) {
         self.resources.push(resource);
     }
 
+    #[allow(dead_code)]
     pub async fn cleanup_all(&self) -> Result<()> {
         for (i, resource) in self.resources.iter().enumerate() {
             match resource.cleanup().await {

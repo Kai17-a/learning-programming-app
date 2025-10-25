@@ -162,6 +162,7 @@ impl HistoryManagerService {
     }
 
     /// Get execution history for a specific file
+    #[allow(dead_code)]
     pub async fn get_file_history(&self, file_path: impl AsRef<str>) -> Result<Vec<ExecutionRecord>> {
         let file_path = file_path.as_ref();
         debug!("Fetching history for file: {}", file_path);
@@ -190,6 +191,7 @@ impl HistoryManagerService {
     }
 
     /// Get execution history for a specific section
+    #[allow(dead_code)]
     pub async fn get_section_history(&self, section: impl AsRef<str>) -> Result<Vec<ExecutionRecord>> {
         let section = section.as_ref();
         debug!("Fetching history for section: {}", section);
@@ -218,6 +220,7 @@ impl HistoryManagerService {
     }
 
     /// Get statistics for a specific file
+    #[allow(dead_code)]
     pub async fn get_file_stats(&self, file_path: impl AsRef<str>) -> Result<ExecutionStats> {
         let file_path = file_path.as_ref();
         debug!("Calculating statistics for file: {}", file_path);
@@ -266,6 +269,7 @@ impl HistoryManagerService {
     }
 
     /// Get statistics for a specific section
+    #[allow(dead_code)]
     pub async fn get_section_stats(&self, section: impl AsRef<str>) -> Result<ExecutionStats> {
         let section = section.as_ref();
         debug!("Calculating statistics for section: {}", section);
@@ -323,6 +327,7 @@ impl HistoryManagerService {
     }
 
     /// Get recent execution trends (last N days)
+    #[allow(dead_code)]
     pub async fn get_execution_trends(&self, days: u32) -> Result<Vec<(String, u64, u64)>> {
         debug!("Calculating execution trends for last {} days", days);
         
@@ -348,6 +353,7 @@ impl HistoryManagerService {
     }
 
     /// Get top executed files with their statistics
+    #[allow(dead_code)]
     pub async fn get_top_files(&self, limit: u32) -> Result<Vec<(String, u64, f64)>> {
         debug!("Getting top {} executed files", limit);
         

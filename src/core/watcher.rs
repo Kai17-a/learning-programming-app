@@ -180,6 +180,7 @@ impl FileWatcherService {
     }
 
     /// Get the current status as a formatted string
+    #[allow(dead_code)]
     pub async fn get_status(&self) -> String {
         if self.is_watching() {
             let dirs = self.get_watched_directories().await;
@@ -200,6 +201,7 @@ impl FileWatcherService {
     }
     
     /// Attempt to recover from watcher errors by restarting
+    #[allow(dead_code)]
     pub async fn recover_from_error(&self) -> Result<()> {
         warn!("Attempting to recover from file watcher error");
         
@@ -228,6 +230,7 @@ impl FileWatcherService {
     }
     
     /// Handle permission errors gracefully
+    #[allow(dead_code)]
     pub fn handle_permission_error(&self, path: impl AsRef<Path>) -> String {
         self.error_handler.handle_permission_error(path)
     }
