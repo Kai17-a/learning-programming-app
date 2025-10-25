@@ -57,6 +57,17 @@ pub enum Commands {
         #[arg(short, long)]
         verbose: bool,
     },
+    
+    /// Generate Go learning problems with section preview
+    GenerateGo {
+        /// Skip section preview and use defaults
+        #[arg(short, long)]
+        skip_preview: bool,
+        
+        /// Output directory for generated problems
+        #[arg(short, long, default_value = "./learning-go")]
+        output: PathBuf,
+    },
 }
 
 impl Cli {
@@ -106,6 +117,36 @@ mod tests {
             assert_eq!(limit, 5);
         } else {
             panic!("Expected History command");
+        }
+    }
+
+    #[test]
+    fn test_generate_go_command() {
+        let cli = Cli::try_parse_from(&["learning-programming-app", "generate-go"]).unwrap();
+        
+        if let Some(Commands::GenerateGo { skip_preview, output }) = cli.command {
+            assert!(!skip_preview);
+            assert_eq!(output, PathBuf::from("./learning-go"));
+        } else {
+            panic!("Expected GenerateGo command");
+        }
+    }
+
+    #[test]
+    fn test_generate_go_command_with_options() {
+        let cli = Cli::try_parse_from(&[
+            "learning-programming-app", 
+            "generate-go", 
+            "--skip-preview", 
+            "--output", 
+            "./custom-go"
+        ]).unwrap();
+        
+        if let Some(Commands::GenerateGo { skip_preview, output }) = cli.command {
+            assert!(skip_preview);
+            assert_eq!(output, PathBuf::from("./custom-go"));
+        } else {
+            panic!("Expected GenerateGo command");
         }
     }
 }

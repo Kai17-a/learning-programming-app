@@ -2,6 +2,7 @@ mod core;
 mod cli;
 mod handlers;
 mod utils;
+mod generators;
 
 use anyhow::Result;
 use cli::CommandLineInterface;

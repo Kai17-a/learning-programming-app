@@ -64,6 +64,9 @@ impl CommandLineInterface {
             Commands::Run { file, verbose } => {
                 self.run_file(&file, verbose).await
             }
+            Commands::GenerateGo { skip_preview, output } => {
+                self.generate_go_problems(skip_preview, &output).await
+            }
         }
     }
 
@@ -78,6 +81,7 @@ impl CommandLineInterface {
         println!("  {} - Show execution statistics", style("stats").green());
         println!("  {} - Clear execution history", style("clear").green());
         println!("  {} - Execute a specific file once", style("run").green());
+        println!("  {} - Generate Go learning problems with section preview", style("generate-go").green());
         println!();
         println!("Use {} for more information about a specific command.", style("--help").yellow());
     }
@@ -328,6 +332,40 @@ impl CommandLineInterface {
     #[allow(dead_code)]
     pub async fn get_system_status(&self) -> crate::core::SystemStatus {
         self.app_service.get_system_status().await
+    }
+
+    /// Generate Go learning problems with section preview and confirmation
+    pub async fn generate_go_problems(&self, skip_preview: bool, output_dir: &Path) -> Result<()> {
+        println!("{} Go Learning Problem Generator", style("🚀").bold().cyan());
+        println!();
+
+        // Convert Path to string for the generator
+        let output_path = output_dir.to_string_lossy().to_string();
+
+        // Run the complete problem generation workflow
+        match crate::generators::go_problems::run_go_problem_generator_with_error_handling(
+            &output_path, 
+            skip_preview
+        ) {
+            Ok(()) => {
+                println!("{} Go problem generation completed successfully!", 
+                    style("✅").green().bold()
+                );
+                println!("Generated problems are available at: {}", 
+                    style(output_dir.display()).cyan()
+                );
+            }
+            Err(e) => {
+                let error_msg = e.to_string();
+                println!("{} Go problem generation failed: {}", 
+                    style("❌").red().bold(), 
+                    style(&error_msg).red()
+                );
+                return Err(anyhow::anyhow!("Problem generation failed: {}", error_msg));
+            }
+        }
+
+        Ok(())
     }
 
     /// Perform graceful shutdown

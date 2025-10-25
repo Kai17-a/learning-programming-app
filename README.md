@@ -178,6 +178,8 @@ cargo run -- run examples/section1-basics/hello_world.py --verbose
 | `stats` | 実行統計を表示 | なし | - |
 | `clear` | 実行履歴をクリア | `-f, --force` | false |
 | `run` | 特定のファイルを一度実行 | `-v, --verbose` | false |
+| `generate-go` | Go学習問題を生成 | `-s, --skip-preview` | false |
+|               |                  | `-o, --output <DIR>` | `./learning-go` |
 | `--help` | ヘルプを表示 | なし | - |
 | `--version` | バージョンを表示 | なし | - |
 
@@ -247,6 +249,483 @@ cargo run -- run examples/section1-basics/hello_world.go
 # 詳細出力で実行
 cargo run -- run examples/section1-basics/hello_world.py --verbose
 ```
+
+#### `generate-go` - Go学習問題生成
+
+```bash
+# デフォルト設定で生成（プレビューあり）
+cargo run -- generate-go
+
+# プレビューをスキップして即座に生成
+cargo run -- generate-go --skip-preview
+
+# カスタム出力ディレクトリを指定
+cargo run -- generate-go --output ./my-go-learning
+```
+
+## Go学習問題の生成
+
+### Go問題生成器の使い方
+
+Learning Programming Appには、Go言語学習用の問題を自動生成する機能が含まれています。この機能により、段階的な難易度で構成された包括的なGo学習教材を作成できます。
+
+#### 基本的な使用方法
+
+##### **デフォルト設定で生成**
+```bash
+# 最も簡単な方法（プレビューあり）
+cargo run -- generate-go
+
+# プレビューをスキップして即座に生成
+cargo run -- generate-go --skip-preview
+
+# カスタム出力ディレクトリを指定
+cargo run -- generate-go --output ./my-go-learning
+```
+
+##### **詳細オプション**
+```bash
+# 全オプションを指定
+cargo run -- generate-go --skip-preview --output ./custom-go-problems
+
+# ヘルプを表示
+cargo run -- generate-go --help
+```
+
+#### 生成プロセスの詳細
+
+##### **Step 1: セクション設定の確認**
+プレビューモード（デフォルト）では、生成される内容を事前に確認できます：
+
+```bash
+$ cargo run -- generate-go
+🚀 Go Learning Problem Generator
+
+📋 Loading section configuration and requesting user approval...
+
+=== Go Learning Sections Preview ===
+The following 10 sections will be created:
+
+1. Basic Syntax (section1-basics)
+   Description: Variables, constants, and basic data types
+   Problems: 10 per section
+   Topics: Variables, Constants, Data Types
+
+2. Control Flow (section2-control-flow)
+   Description: Conditional statements and loops
+   Problems: 10 per section
+   Topics: If Statements, For Loops, Switch Statements
+
+[... 8 more sections ...]
+
+Total problems to be generated: 100
+
+Do you want to proceed with this section structure? (y)es / (n)o / (m)odify / (d)etails:
+```
+
+**選択肢:**
+- `y` (yes): 生成を開始
+- `n` (no): 生成をキャンセル
+- `m` (modify): セクション構成をカスタマイズ
+- `d` (details): 詳細情報を表示
+
+##### **Step 2: セクション構成のカスタマイズ**
+`m` (modify) を選択すると、セクション構成をカスタマイズできます：
+
+```bash
+=== Section Modification Options ===
+1. Remove a section
+2. Reorder sections
+3. Add a custom section
+4. Modify section details
+5. Reset to defaults
+6. Done with modifications
+
+Choose an option (1-6):
+```
+
+**カスタマイズ例:**
+```bash
+# セクションの削除
+Choose an option (1-6): 1
+Current sections:
+1. Basic Syntax
+2. Control Flow
+[...]
+Enter section number to remove (or 0 to cancel): 3
+
+# セクションの並び替え
+Choose an option (1-6): 2
+Enter two section numbers to swap (e.g., '1 3') or 0 to cancel: 2 4
+
+# カスタムセクションの追加
+Choose an option (1-6): 3
+Section ID (e.g., 'section11-custom'): section11-web-development
+Section Name: Web Development
+Section Description: HTTP servers and web applications
+```
+
+##### **Step 3: 生成プロセス**
+設定確認後、自動的に生成が開始されます：
+
+```bash
+📊 Generation Plan:
+   📁 Output directory: ./learning-go
+   📚 Sections to create: 10
+   📄 Total problems: 100
+   🎯 Problems per section: 10
+
+⏳ Starting generation process...
+🏗️  Creating Go learning directory structure...
+📝 Generating Go problem files with progressive difficulty...
+🔍 Validating generated files for syntax and formatting...
+🔧 Attempting Go compiler validation (optional)...
+
+🎉 Generation Summary:
+   ✅ Successfully created 10 sections
+   ✅ Generated 100 Go problem files
+   ✅ All files validated for syntax and formatting
+   📁 Location: ./learning-go
+```
+
+#### 生成される内容
+
+##### **ディレクトリ構造**
+```
+learning-go/
+├── section1-basics/
+│   ├── problem01_variables.go
+│   ├── problem02_constants.go
+│   ├── problem03_data_types.go
+│   ├── problem04_zero_values.go
+│   ├── problem05_type_inference.go
+│   ├── problem06_numeric_types.go
+│   ├── problem07_string_operations.go
+│   ├── problem08_boolean_operations.go
+│   ├── problem09_type_conversion.go
+│   └── problem10_variable_scope.go
+├── section2-control-flow/
+│   ├── problem01_if_statements.go
+│   ├── problem02_if_with_initialization.go
+│   ├── problem03_for_loops_basic.go
+│   ├── problem04_range_loops.go
+│   ├── problem05_switch_basic.go
+│   ├── problem06_switch_without_expression.go
+│   ├── problem07_switch_fallthrough.go
+│   ├── problem08_nested_control_flow.go
+│   ├── problem09_break_continue.go
+│   └── problem10_control_flow_patterns.go
+├── section3-functions/
+├── section4-packages/
+├── section5-structs/
+├── section6-interfaces/
+├── section7-concurrency/
+├── section8-error-handling/
+├── section9-pointers/
+└── section10-collections/
+```
+
+##### **問題ファイルの構造**
+各問題ファイルには以下の要素が含まれます：
+
+```go
+// Problem: Variable Declaration Practice
+// Topic: Variables
+// Difficulty: 1
+
+package main
+
+import "fmt"
+
+func main() {
+    // TODO: Declare a variable named 'name' of type string and assign it your name
+    
+    // TODO: Declare a variable named 'age' using short variable declaration and assign it a number
+    
+    // TODO: Declare multiple variables in one line: x, y both integers with values 10, 20
+    
+    // TODO: Declare a variable without initialization and observe its zero value
+    var count int
+    
+    fmt.Printf("Name: %s, Age: %d\n", name, age)
+    fmt.Printf("X: %d, Y: %d\n", x, y)
+    fmt.Printf("Count (zero value): %d\n", count)
+}
+```
+
+##### **段階的難易度システム**
+各セクションの10問は段階的な難易度で構成されます：
+
+- **問題1-3**: 難易度1（基礎レベル）
+- **問題4-6**: 難易度2（中級レベル）
+- **問題7-10**: 難易度3（上級レベル）
+
+#### 生成される学習コンテンツ
+
+##### **Section 1: Basic Syntax（基礎構文）**
+- 変数宣言（var、短縮宣言）
+- 定数とiota
+- 基本データ型（int、float、string、bool）
+- ゼロ値の理解
+- 型推論と型変換
+- 変数スコープ
+
+##### **Section 2: Control Flow（制御構造）**
+- if文（基本、else、初期化付き）
+- for文（基本、range、while風）
+- switch文（式あり、式なし、fallthrough）
+- ネストした制御構造
+- break、continue
+
+##### **Section 3: Functions（関数）**
+- 関数の定義と呼び出し
+- 複数戻り値
+- 可変長引数
+- 関数リテラルとクロージャ
+- defer文
+
+##### **Section 4: Packages（パッケージ）**
+- パッケージ宣言
+- import文（単一、グループ、エイリアス）
+- 標準ライブラリの使用
+- エクスポートされた識別子
+
+##### **Section 5: Structs（構造体）**
+- 構造体の定義と初期化
+- メソッドの定義
+- ポインタレシーバー
+- 構造体の埋め込み
+
+##### **Section 6: Interfaces（インターフェース）**
+- インターフェースの定義
+- 空のインターフェース
+- 型アサーション
+- インターフェースの組み合わせ
+
+##### **Section 7: Concurrency（並行処理）**
+- ゴルーチンの基本
+- チャネルの作成と操作
+- select文
+- チャネルの方向性
+
+##### **Section 8: Error Handling（エラー処理）**
+- errorインターフェース
+- エラーの作成（errors.New、fmt.Errorf）
+- エラーハンドリングパターン
+- panicとrecover
+
+##### **Section 9: Pointers（ポインタ）**
+- ポインタの基本（&、*演算子）
+- 構造体へのポインタ
+- new()とmake()関数
+- メモリ管理の理解
+
+##### **Section 10: Collections（コレクション）**
+- 配列の宣言と操作
+- スライスの作成と操作
+- マップの宣言と操作
+- append関数とスライスの拡張
+
+#### 生成されたファイルの使用方法
+
+##### **学習の開始**
+```bash
+# 生成されたディレクトリに移動
+cd learning-go/section1-basics
+
+# 最初の問題を開く
+code problem01_variables.go  # VS Code
+vim problem01_variables.go   # Vim
+nano problem01_variables.go  # Nano
+
+# 問題を解いてテスト実行
+go run problem01_variables.go
+```
+
+##### **自動監視での学習**
+```bash
+# Learning Programming App で監視開始
+cargo run -- watch learning-go
+
+# 別のターミナルでファイルを編集・保存
+# 保存と同時に自動実行される
+```
+
+##### **進捗管理**
+```bash
+# 実行履歴を確認
+cargo run -- history
+
+# 統計情報を表示
+cargo run -- stats
+
+# 特定のファイルを単発実行
+cargo run -- run learning-go/section1-basics/problem01_variables.go
+```
+
+## テストとバリデーション
+
+### Go問題生成器のテスト
+
+Go学習問題の品質と正確性を検証するための包括的なテストスイートが含まれています。
+
+#### テストの実行方法
+
+##### 全てのテストを実行
+```bash
+cargo test --test go_problems_validation_test
+```
+
+##### 特定のテストを実行
+```bash
+# Go構文検証テストのみ
+cargo test --test go_problems_validation_test test_go_syntax_validation
+
+# ディレクトリ構造テストのみ
+cargo test --test go_problems_validation_test test_directory_structure_creation
+
+# パフォーマンステストのみ
+cargo test --test go_problems_validation_test test_problem_generation_performance
+```
+
+##### 詳細出力付きでテスト実行
+```bash
+cargo test --test go_problems_validation_test -- --nocapture
+```
+
+#### テストの種類と用途
+
+##### **基本検証テスト**
+- `test_go_problem_validation` - 生成されたGo問題の基本構造を検証
+- `test_section_config_validation` - セクション設定の妥当性を検証
+
+##### **ファイル・ディレクトリテスト**
+- `test_directory_structure_creation` - ディレクトリ構造の作成を検証
+- `test_comprehensive_directory_validation` - 既存の生成済みディレクトリを検証
+
+##### **品質検証テスト**
+- `test_problem_content_quality` - 問題コンテンツの品質を検証
+- `test_go_syntax_validation` - Go コンパイラを使った構文検証
+
+##### **統合・パフォーマンステスト**
+- `test_integration_with_file_generation` - ファイル生成システムとの統合テスト
+- `test_problem_generation_performance` - 生成パフォーマンスのベンチマーク
+
+#### GoSyntaxValidator の使い方
+
+##### **単一ファイルの検証**
+```rust
+use std::path::Path;
+
+let file_path = Path::new("example.go");
+match GoSyntaxValidator::validate_go_file_syntax(&file_path) {
+    Ok(()) => println!("構文は正しいです"),
+    Err(error) => println!("構文エラー: {}", error),
+}
+```
+
+##### **ディレクトリ全体の検証**
+```rust
+let dir_path = Path::new("learning-go/section1-basics");
+let errors = GoSyntaxValidator::validate_directory_go_files(&dir_path)?;
+if errors.is_empty() {
+    println!("全てのファイルが正しいです");
+} else {
+    println!("エラーが見つかりました: {:?}", errors);
+}
+```
+
+##### **Go コンテンツの検証**
+```rust
+let go_code = r#"
+package main
+import "fmt"
+func main() {
+    fmt.Println("Hello, World!")
+}
+"#;
+
+match GoSyntaxValidator::validate_go_content_syntax(go_code) {
+    Ok(()) => println!("コードは正しいです"),
+    Err(error) => println!("エラー: {}", error),
+}
+```
+
+#### 実際の使用例
+
+##### **開発中の検証**
+```bash
+# 新しい問題を生成した後
+cargo test --test go_problems_validation_test test_comprehensive_directory_validation
+
+# 特定のセクションの品質チェック
+cargo test --test go_problems_validation_test test_problem_content_quality
+```
+
+##### **CI/CDでの自動検証**
+```bash
+# 全ての検証を実行（Go がインストールされていない環境でも動作）
+cargo test --test go_problems_validation_test --quiet
+```
+
+#### テストが検証する項目
+
+##### **Go構文の正確性**
+✅ 生成されたGoファイルがコンパイル可能  
+✅ 適切なpackage main宣言  
+✅ func main()関数の存在  
+✅ 正しいimport文の構文  
+
+##### **問題構造の品質**
+✅ 必須コメント（Problem、Topic、Difficulty）の存在  
+✅ 適切なファイル名形式（.go拡張子）  
+✅ 難易度レベルの妥当性（1-3の範囲）  
+✅ セクションごとに正確に10問生成  
+
+##### **ディレクトリ構造**
+✅ learning-goディレクトリの作成  
+✅ 全セクションディレクトリの存在  
+✅ ファイルの適切な配置  
+✅ ディレクトリ権限の正確性  
+
+##### **コンテンツ品質**
+✅ 段階的難易度の実装  
+✅ 学習目標に沿った問題内容  
+✅ 適切なコメントと説明  
+✅ 実行可能なサンプルコード  
+
+#### Go コンパイラとの統合
+
+テストスイートは実際のGo コンパイラを使用して構文検証を行います：
+
+- **Go がインストールされている場合**: 実際の `go build` コマンドで構文チェック
+- **Go がインストールされていない場合**: 基本的な構造チェックのみ実行
+- **エラー処理**: 構文エラーの詳細な報告とログ出力
+
+##### **Go インストール状況の確認**
+```bash
+# Go のバージョン確認
+go version
+
+# テスト実行時のGo検証状況確認
+cargo test --test go_problems_validation_test test_go_syntax_validation -- --nocapture
+```
+
+#### パフォーマンス検証
+
+テストスイートには生成パフォーマンスのベンチマークも含まれています：
+
+```bash
+# パフォーマンステストの実行
+cargo test --test go_problems_validation_test test_problem_generation_performance -- --nocapture
+```
+
+**期待される性能:**
+- 全100問の生成: 5秒以内
+- セクションあたり10問: 0.5秒以内
+- 個別問題の検証: 0.01秒以内
+
+これらのテストにより、生成されたGo学習問題の品質と正確性を継続的に検証し、学習者に高品質な教材を提供できます。
 
 ## 使用例とサンプル実行
 
@@ -387,779 +866,3 @@ Hello, World!
 こんにちは、学習者さん！
 10 + 5 = 15
 ```
-
-## サンプル問題
-
-アプリケーションには学習用のサンプル問題が含まれています。各ファイルには詳細なコメントと段階的な問題が含まれており、ファイルを保存するだけで即座に実行結果を確認できます。
-
-### Section 1: 基礎編 (`examples/section1-basics/`)
-
-#### `hello_world.py` - 基本的な出力と変数（Python版）
-```python
-# Hello World - 基本的な出力
-# このファイルを保存すると自動的に実行されます
-
-# 問題1: "Hello, World!" を出力してください
-print("Hello, World!")
-
-# 問題2: あなたの名前を出力してください
-name = "学習者"  # ここを自分の名前に変更してください
-print(f"こんにちは、{name}さん！")
-
-# 問題3: 簡単な計算結果を出力してください
-result = 10 + 5
-print(f"10 + 5 = {result}")
-```
-
-#### `hello_world.go` - 基本的な出力と変数（Go版）
-```go
-package main
-
-import "fmt"
-
-func main() {
-    // 問題1: "Hello, World!" を出力してください
-    fmt.Println("Hello, World!")
-    
-    // 問題2: あなたの名前を出力してください
-    name := "学習者" // ここを自分の名前に変更してください
-    fmt.Printf("こんにちは、%sさん！\n", name)
-    
-    // 問題3: 簡単な計算結果を出力してください
-    result := 10 + 5
-    fmt.Printf("10 + 5 = %d\n", result)
-}
-```
-
-#### `variables.py` / `variables.go` - 変数とデータ型
-- 文字列、数値、真偽値の基本操作
-- 変数の代入と更新
-- データ型の確認と変換
-- Python版とGo版の両方を提供
-
-#### `input_output.py` - 入力と出力（Python版）
-- `input()` 関数を使用したユーザー入力
-- 入力データの処理と出力
-- 文字列フォーマット
-
-### Section 2: 制御構造編 (`examples/section2-control-flow/`)
-
-#### `if_statements.py` / `if_statements.go` - 条件分岐
-- if、elif/else if、else文の使用
-- 比較演算子と論理演算子
-- ネストした条件分岐
-- Python版とGo版の両方を提供
-
-#### `loops.py` / `loops.go` - ループ処理
-- for文とwhile文の基本（Goはfor文のみ）
-- range()関数の使用（Python）、range構文（Go）
-- ループの制御（break、continue）
-- Python版とGo版の両方を提供
-
-#### `functions.py` / `functions.go` - 関数
-- 関数の定義と呼び出し
-- 引数と戻り値
-- ローカル変数とグローバル変数
-- Python版とGo版の両方を提供
-
-### 学習の進め方
-
-1. **ファイルを開く**: お好みのエディタで問題ファイルを開く
-2. **コードを編集**: コメントの指示に従ってコードを修正
-3. **保存**: ファイルを保存（Ctrl+S）
-4. **結果確認**: 自動実行された結果をコンソールで確認
-5. **繰り返し**: エラーが出た場合は修正して再保存
-
-**ヒント**: エラーが発生してもアプリケーションは停止しません。エラーメッセージを読んで修正し、再度保存してください。
-
-## プロジェクト構造
-
-```
-learning-programming-app/
-├── src/                    # ソースコード
-│   ├── cli/               # CLIインターフェース
-│   ├── core/              # コア機能（監視、実行、履歴）
-│   ├── handlers/          # 言語ハンドラー
-│   ├── utils/             # ユーティリティ
-│   └── main.rs            # エントリーポイント
-├── tests/                 # テストファイル
-├── examples/              # サンプル問題
-│   ├── section1-basics/   # 基礎編（Python & Go）
-│   └── section2-control-flow/ # 制御構造編（Python & Go）
-├── Cargo.toml            # プロジェクト設定
-├── Cargo.lock            # 依存関係ロック
-└── README.md             # このファイル
-```
-
-## 設定とカスタマイズ
-
-### サポートされている言語
-
-現在サポートされている言語と拡張子：
-- **Python**: `.py` ファイル（`python` コマンドを使用）
-- **Go**: `.go` ファイル（`go run` コマンドを使用）
-
-### 実行環境の設定
-
-#### Pythonコマンドの設定
-システムによってPythonコマンドが異なる場合があります：
-- Windows: `python` または `py`
-- macOS/Linux: `python3` または `python`
-
-アプリケーションは `python` コマンドを使用します。`python3` を使用したい場合は、シンボリックリンクを作成するか、エイリアスを設定してください。
-
-#### Goコマンドの設定
-Goは標準的な `go` コマンドを使用します：
-- 全プラットフォーム: `go run` コマンドでファイルを実行
-- Go 1.18以降を推奨（モジュール機能とジェネリクス対応）
-
-#### 実行タイムアウト
-- デフォルト: 30秒
-- 長時間実行されるプログラムは自動的に停止されます
-- 無限ループの防止機能
-
-### データ保存
-
-#### 実行履歴データベース
-- **ファイル**: `learning_app.db`（SQLite）
-- **場所**: アプリケーション実行ディレクトリ
-- **内容**: 実行履歴、統計情報、実行時間など
-- **初期化**: 初回実行時に自動的に作成される
-
-**注意**: 現在の実装では、`run` コマンドでの単発実行は履歴に記録されません。`watch` モードでの自動実行のみが履歴として保存されます。
-
-#### データベースの管理
-```bash
-# 履歴をクリア
-cargo run -- clear
-
-# 強制クリア（確認なし）
-cargo run -- clear --force
-```
-
-### ログ設定
-
-#### ログレベルの変更
-```bash
-# デバッグログを有効化
-RUST_LOG=debug cargo run -- watch
-
-# 情報レベルのログ
-RUST_LOG=info cargo run -- watch
-
-# エラーのみ
-RUST_LOG=error cargo run -- watch
-```
-
-#### 利用可能なログレベル
-- `error`: エラーのみ
-- `warn`: 警告以上
-- `info`: 情報以上（推奨）
-- `debug`: デバッグ情報（開発用）
-- `trace`: 全ての詳細情報
-
-### カスタムディレクトリ構造
-
-独自の学習ディレクトリを作成する場合：
-
-```
-my-exercises/
-├── basics/
-│   ├── hello.py
-│   ├── hello.go
-│   ├── variables.py
-│   └── variables.go
-├── advanced/
-│   ├── classes.py
-│   ├── structs.go
-│   ├── modules.py
-│   └── packages.go
-└── projects/
-    ├── calculator.py
-    └── calculator.go
-```
-
-```bash
-# カスタムディレクトリを監視
-cargo run -- watch my-exercises
-
-# セクション確認
-cargo run -- sections --directory my-exercises
-```
-
-## 既知の制限事項
-
-### 現在の制限
-
-- **履歴記録**: `run` コマンドでの単発実行は履歴に記録されません
-- **言語サポート**: 現在はPythonとGoをサポート
-- **文字エンコーディング**: 日本語出力でWindows環境において文字化けが発生する場合があります
-- **実行タイムアウト**: 長時間実行されるプログラムは30秒でタイムアウトします
-
-### 今後の改善予定
-
-- 他のプログラミング言語のサポート（JavaScript、Java、C++、Rustなど）
-- 単発実行の履歴記録対応
-- 設定ファイルによるカスタマイズ機能
-- より詳細な統計情報とレポート機能
-- 言語固有の設定とカスタマイズ
-
-## トラブルシューティング
-
-### よくある問題と解決方法
-
-#### 1. Pythonが見つからない
-
-**エラー例:**
-```bash
-Error: Python command not found
-thread 'main' panicked at 'Python interpreter not found'
-```
-
-**解決方法:**
-```bash
-# Pythonのインストール確認
-python --version
-python3 --version
-
-# PATHの確認（Windows）
-where python
-
-# PATHの確認（macOS/Linux）
-which python
-which python3
-```
-
-**対処法:**
-- Pythonがインストールされていない場合: [Python公式サイト](https://www.python.org/)からインストール
-- PATHが通っていない場合: 環境変数PATHにPythonのパスを追加
-- `python3`しかない場合: エイリアスまたはシンボリックリンクを作成
-
-#### 2. Goが見つからない
-
-**エラー例:**
-```bash
-Error: Go command not found
-Failed to execute go command: program not found
-```
-
-**解決方法:**
-```bash
-# Goのインストール確認
-go version
-
-# PATHの確認（Windows）
-where go
-
-# PATHの確認（macOS/Linux）
-which go
-```
-
-**対処法:**
-- Goがインストールされていない場合: [Go公式サイト](https://golang.org/)からインストール
-- PATHが通っていない場合: 環境変数PATHにGoのパスを追加
-- Go 1.18以降の使用を推奨
-
-#### 3. ファイル監視が開始されない
-
-**エラー例:**
-```bash
-Error: Permission denied (os error 13)
-Error: No such file or directory (os error 2)
-```
-
-**解決方法:**
-```bash
-# ディレクトリの存在確認
-ls -la examples/
-
-# 権限の確認
-ls -ld examples/
-
-# 権限の修正（必要に応じて）
-chmod 755 examples/
-```
-
-#### 4. アプリケーションが応答しない
-
-**症状:** `Ctrl+C` を押しても終了しない
-
-**解決方法:**
-```bash
-# 強制終了（Linux/macOS）
-kill -9 <process_id>
-
-# 強制終了（Windows）
-taskkill /F /PID <process_id>
-```
-
-#### 5. 実行結果が表示されない
-
-**考えられる原因:**
-- ファイルの拡張子が `.py` または `.go` でない
-- ファイルが監視対象ディレクトリにない
-- ファイルに構文エラーがある
-- 対応する言語（PythonまたはGo）がインストールされていない
-
-**確認方法:**
-```bash
-# 詳細モードで実行
-cargo run -- watch --verbose
-
-# 単発実行でテスト（Python）
-cargo run -- run your_file.py --verbose
-
-# 単発実行でテスト（Go）
-cargo run -- run your_file.go --verbose
-```
-
-#### 6. データベースエラー
-
-**エラー例:**
-```bash
-Error: database is locked
-Error: unable to open database file
-```
-
-**解決方法:**
-```bash
-# データベースファイルの確認
-ls -la learning_app.db
-
-# 権限の修正
-chmod 644 learning_app.db
-
-# データベースの再作成（履歴は失われます）
-rm learning_app.db
-cargo run -- stats  # 新しいDBが作成される
-```
-
-#### 7. 文字化け（Windows環境）
-
-**症状:** 日本語出力が文字化けする
-
-**解決方法:**
-```bash
-# コマンドプロンプトの文字コードをUTF-8に設定
-chcp 65001
-
-# PowerShellの場合
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
-# 環境変数での設定（永続化）
-set PYTHONIOENCODING=utf-8
-```
-
-### デバッグ方法
-
-#### 詳細ログの有効化
-
-```bash
-# 全ての詳細ログ
-RUST_LOG=trace cargo run -- watch --verbose
-
-# 特定のモジュールのログ
-RUST_LOG=learning_programming_app::core=debug cargo run -- watch
-
-# ファイル監視のデバッグ
-RUST_LOG=notify=debug cargo run -- watch
-```
-
-#### 環境情報の確認
-
-```bash
-# Rustのバージョン
-rustc --version
-cargo --version
-
-# システム情報
-uname -a  # Linux/macOS
-systeminfo  # Windows
-
-# 依存関係の確認
-cargo tree
-```
-
-### パフォーマンスの問題
-
-#### 大量ファイルの監視
-
-大量のファイルがあるディレクトリを監視する場合：
-
-```bash
-# 特定のサブディレクトリのみ監視
-cargo run -- watch examples/section1-basics
-
-# 不要なファイルを除外（.gitignoreを活用）
-echo "*.tmp" >> .gitignore
-echo "*.log" >> .gitignore
-```
-
-#### メモリ使用量の確認
-
-```bash
-# メモリ使用量の監視（Linux/macOS）
-top -p $(pgrep learning-programming-app)
-
-# メモリ使用量の監視（Windows）
-tasklist /FI "IMAGENAME eq learning-programming-app.exe"
-```
-
-### サポートとヘルプ
-
-問題が解決しない場合：
-
-1. **ヘルプの確認**
-```bash
-cargo run -- --help
-cargo run -- watch --help
-```
-
-2. **バージョン情報**
-```bash
-cargo run -- --version
-```
-
-3. **ログファイルの作成**
-```bash
-RUST_LOG=debug cargo run -- watch 2>&1 | tee debug.log
-```
-
-4. **最小再現例の作成**
-```bash
-# 最小限のテストファイルで確認
-echo 'print("test")' > test.py
-cargo run -- run test.py
-```
-
-## 開発者向け情報
-
-### 開発環境のセットアップ
-
-```bash
-# 開発用の依存関係を含むビルド
-cargo build
-
-# 開発用の実行（デバッグ情報付き）
-RUST_LOG=debug cargo run -- watch
-
-# コードフォーマット
-cargo fmt
-
-# リンター実行
-cargo clippy
-
-# ドキュメント生成
-cargo doc --open
-```
-
-### テストの実行
-
-```bash
-# 全テストを実行
-cargo test
-
-# 特定のテストを実行
-cargo test test_python_handler
-
-# 統合テストを実行
-cargo test --test integration_tests
-
-# テストカバレッジ（tarpaulinが必要）
-cargo tarpaulin --out Html
-```
-
-### 新しい言語ハンドラーの追加
-
-#### 1. ハンドラーの実装
-
-`src/handlers/` に新しいハンドラーを作成：
-
-```rust
-// src/handlers/javascript.rs
-use crate::handlers::base::{LanguageHandler, ExecutionResult};
-use async_trait::async_trait;
-use std::path::Path;
-use tokio::process::Command;
-
-#[derive(Debug, Clone)]
-pub struct JavaScriptHandler {
-    node_command: String,
-}
-
-impl JavaScriptHandler {
-    pub fn new() -> Self {
-        Self {
-            node_command: "node".to_string(),
-        }
-    }
-}
-
-#[async_trait]
-impl LanguageHandler for JavaScriptHandler {
-    async fn execute(&self, file_path: impl AsRef<Path> + Send) -> Result<ExecutionResult> {
-        let mut cmd = Command::new(&self.node_command);
-        cmd.arg(file_path.as_ref());
-        
-        // 実行ロジックの実装
-        // ...
-    }
-    
-    fn get_extension(&self) -> &'static str { "js" }
-    fn get_name(&self) -> &'static str { "JavaScript" }
-}
-```
-
-#### 2. ハンドラーの登録
-
-`src/cli/interface.rs` でハンドラーを登録：
-
-```rust
-// CommandLineInterface::new() 内で
-language_handlers
-    .register_handler("js", Arc::new(JavaScriptHandler::new()))
-    .await;
-```
-
-#### 3. テストの追加
-
-```rust
-// tests/handlers/test_javascript.rs
-#[tokio::test]
-async fn test_javascript_execution() {
-    let handler = JavaScriptHandler::new();
-    // テストロジック
-}
-```
-
-### アーキテクチャ
-
-#### コンポーネント構成
-
-```
-CLI Layer
-├── CommandLineInterface    # メインインターフェース
-├── Commands               # コマンド定義
-└── ShutdownHandler       # 終了処理
-
-Core Layer
-├── FileWatcherService    # ファイル監視
-├── AutoExecutorService   # 自動実行
-├── HistoryManagerService # 履歴管理
-└── LanguageHandlerService # 言語ハンドラー管理
-
-Handler Layer
-├── LanguageHandler (trait) # 言語ハンドラーインターフェース
-├── PythonHandler          # Python実行
-└── [Future handlers]      # 将来の言語サポート
-
-Utils Layer
-├── ErrorHandler          # エラー処理
-├── DisplayUtils         # 表示ユーティリティ
-└── ConfigManager        # 設定管理
-```
-
-#### データフロー
-
-```
-File Change → FileWatcher → AutoExecutor → LanguageHandler → ExecutionResult → Display
-                                        ↓
-                                   HistoryManager → SQLite Database
-```
-
-### コントリビューション
-
-#### プルリクエストの手順
-
-1. **フォークとクローン**
-```bash
-git clone https://github.com/your-username/learning-programming-app.git
-cd learning-programming-app
-```
-
-2. **ブランチの作成**
-```bash
-git checkout -b feature/new-language-support
-```
-
-3. **開発とテスト**
-```bash
-# 開発
-cargo build
-cargo test
-
-# フォーマットとリント
-cargo fmt
-cargo clippy
-```
-
-4. **コミットとプッシュ**
-```bash
-git add .
-git commit -m "Add JavaScript language support"
-git push origin feature/new-language-support
-```
-
-#### コーディング規約
-
-- **Rust標準**: `cargo fmt` と `cargo clippy` に従う
-- **非同期処理**: `async/await` を適切に使用
-- **エラーハンドリング**: `anyhow` を使用し、適切なエラーメッセージを提供
-- **テスト**: 新機能には必ずテストを追加
-- **ドキュメント**: パブリック関数にはドキュメントコメントを追加
-
-#### 新機能の提案
-
-新機能を提案する場合：
-
-1. **Issue作成**: 機能の詳細と用途を説明
-2. **設計議論**: アーキテクチャへの影響を検討
-3. **実装**: プロトタイプまたは完全な実装
-4. **レビュー**: コードレビューとテスト
-
-### ビルドとリリース
-
-#### リリースビルド
-
-```bash
-# 最適化されたリリースビルド
-cargo build --release
-
-# バイナリサイズの最適化
-cargo build --release --target x86_64-unknown-linux-musl
-
-# クロスコンパイル（例：Windows向け）
-cargo build --release --target x86_64-pc-windows-gnu
-```
-
-#### パッケージング
-
-```bash
-# Cargo パッケージの作成
-cargo package
-
-# crates.io への公開（メンテナー用）
-cargo publish
-```
-
-## 技術仕様
-
-### 開発環境
-
-- **言語**: Rust 1.82+ (2021 edition)
-- **最小サポートRustバージョン (MSRV)**: 1.82.0
-
-### 主要依存関係
-
-| クレート | バージョン | 用途 |
-|---------|-----------|------|
-| `tokio` | 1.40+ | 非同期ランタイム |
-| `clap` | 4.5+ | CLI フレームワーク |
-| `console` | 0.15+ | コンソール出力装飾 |
-| `notify` | 6.1+ | ファイルシステム監視 |
-| `sqlx` | 0.8+ | データベースアクセス |
-| `anyhow` | 1.0+ | エラーハンドリング |
-| `tracing` | 0.1+ | 構造化ログ |
-| `serde` | 1.0+ | シリアライゼーション |
-| `chrono` | 0.4+ | 日時処理 |
-| `uuid` | 1.10+ | 一意識別子 |
-| `async-trait` | 0.1+ | 非同期トレイト |
-
-### 言語サポート
-
-| 言語 | 拡張子 | 実行コマンド | 構文チェック | ステータス |
-|------|--------|-------------|-------------|-----------|
-| Python | `.py` | `python` | `python -m py_compile` | ✅ 完全サポート |
-| Go | `.go` | `go run` | `go build -o /dev/null` | ✅ 完全サポート |
-| JavaScript | `.js` | `node` | - | 🚧 計画中 |
-| Rust | `.rs` | `cargo run` | `cargo check` | 🚧 計画中 |
-
-### システム要件
-
-#### 最小要件
-- **RAM**: 64MB
-- **ディスク**: 50MB（バイナリ + データベース）
-- **CPU**: 任意のx86_64またはARM64プロセッサ
-
-#### 推奨要件
-- **RAM**: 128MB以上
-- **ディスク**: 100MB以上（履歴データ用）
-- **CPU**: マルチコア（並列処理のため）
-
-### サポートプラットフォーム
-
-| OS | アーキテクチャ | ステータス |
-|----|---------------|-----------|
-| Windows | x86_64 | ✅ サポート |
-| macOS | x86_64, ARM64 | ✅ サポート |
-| Linux | x86_64, ARM64 | ✅ サポート |
-| FreeBSD | x86_64 | 🧪 実験的 |
-
-### パフォーマンス特性
-
-- **ファイル監視**: リアルタイム（<100ms遅延）
-- **実行開始**: <50ms（小さなPythonファイル）
-- **メモリ使用量**: 10-20MB（ベースライン）
-- **データベース**: SQLite（軽量、ファイルベース）
-
-### セキュリティ
-
-- **コード実行**: ユーザー権限で実行（サンドボックスなし）
-- **ファイルアクセス**: 指定ディレクトリのみ監視
-- **データ保存**: ローカルSQLiteデータベース
-- **ネットワーク**: 外部通信なし
-
-## ライセンス
-
-MIT License
-
-Copyright (c) 2025 Learning Programming App Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-## 貢献とサポート
-
-### 貢献方法
-
-プルリクエストやイシューの報告を歓迎します：
-
-- 🐛 **バグ報告**: [Issues](https://github.com/your-repo/learning-programming-app/issues)
-- 💡 **機能提案**: [Feature Requests](https://github.com/your-repo/learning-programming-app/issues)
-- 🔧 **プルリクエスト**: [Pull Requests](https://github.com/your-repo/learning-programming-app/pulls)
-
-### コミュニティ
-
-- **ディスカッション**: [GitHub Discussions](https://github.com/your-repo/learning-programming-app/discussions)
-- **Wiki**: [プロジェクトWiki](https://github.com/your-repo/learning-programming-app/wiki)
-
-### 謝辞
-
-このプロジェクトは以下のオープンソースプロジェクトに依存しています：
-
-- [Rust Programming Language](https://www.rust-lang.org/)
-- [Tokio](https://tokio.rs/) - 非同期ランタイム
-- [clap](https://clap.rs/) - CLI フレームワーク
-- [notify](https://github.com/notify-rs/notify) - ファイル監視
-- [SQLx](https://github.com/launchbadge/sqlx) - データベースアクセス
-
----
-
-**Happy Learning! 🚀**
-
-プログラミング学習を楽しんでください。質問や提案がありましたら、お気軽にお知らせください。
