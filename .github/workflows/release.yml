@@ -1,262 +1,74 @@
-name: Build and Release
+name: Release
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create a new release'
-        required: false
-        default: 'true'
-        type: boolean
-
-permissions:
-  contents: write  # ← これが重要（403対策）
+    tags:
+      - 'v*'
 
 jobs:
-  build:
-    name: Build Release Binaries
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ runner.os }}-
-
-      - name: Cache Cargo build
-        uses: actions/cache@v3
-        with:
-          path: target
-          key: cargo-build-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-build-${{ runner.os }}-
-
-      - name: Build release binary
-        run: cargo build --release
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: learning-programming-app-windows-x64.exe
-          path: target/release/learning-programming-app.exe
-
   release:
-    name: Create Release
-    needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.create_release == 'true'))
-
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Get version from Cargo.toml
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
 
-      - name: Check if tag exists
-        id: tag_check
-        shell: bash
-        run: |
-          if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
 
-      - name: Create tag
-        if: steps.tag_check.outputs.exists == 'false'
-        shell: bash
-        run: |
-          git tag ${{ steps.version.outputs.version }}
-          git push origin ${{ steps.version.outputs.version }}
+    - name: Cache cargo index
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-index-
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+    - name: Cache target directory
+      uses: actions/cache@v4
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-target-
 
-      - name: Create binary README
-        run: |
-          cat > BINARY_README.md << 'EOF'
-          # Learning Programming App - Binary Release
-          （中略 — 既存のREADMEをそのまま使用）
-          EOF
+    - name: Build release binary
+      run: cargo build --release
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: Release ${{ steps.version.outputs.version }}
-          body: |
-            # Learning Programming App - Binary Release
-        
-            プログラミング学習者向けのファイル監視型自動実行CLIアプリケーション
-            
-            ## 📦 バイナリファイル
-            
-            このリリースには以下のプラットフォーム用のバイナリが含まれています：
-            
-            - **Linux (x64)**: `learning-programming-app-linux-x64`
-            - **Windows (x64)**: `learning-programming-app-windows-x64.exe`
-            
-            ## 🚀 クイックスタート
-            
-            ### 1. バイナリのダウンロード
-            
-            お使いのプラットフォームに対応するバイナリをダウンロードしてください。
-            
-            ### 2. 実行権限の付与（Linux）
-            
-            ```bash
-            # Linux
-            chmod +x learning-programming-app-linux-x64
-            ```
-            
-            ### 3. 基本的な使用方法
-            
-            ```bash
-            # ヘルプを表示
-            ./learning-programming-app-linux-x64 --help
-            
-            # ファイル監視を開始（デフォルト: ./examples）
-            ./learning-programming-app-linux-x64 watch
-            
-            # 特定のディレクトリを監視
-            ./learning-programming-app-linux-x64 watch --directory ./my-exercises
-            
-            # 利用可能なセクションを表示
-            ./learning-programming-app-linux-x64 sections
-            
-            # 実行履歴を表示
-            ./learning-programming-app-linux-x64 history
-            
-            # 統計情報を表示
-            ./learning-programming-app-linux-x64 stats
-            
-            # Go学習問題を生成
-            ./learning-programming-app-linux-x64 generate-go
-            ```
-            
-            ## 📋 必要な環境
-            
-            ### Python ファイル実行用
-            - **uv**: 推奨（高速なPythonパッケージマネージャー）
-            - **Python**: 3.x 以降（uvがない場合のフォールバック）
-            - コマンド: `uv`、`python3`、または `python` がPATHに設定されている必要があります
-            
-            ### Go ファイル実行用
-            - **Go**: 1.18 以降
-            - コマンド: `go` がPATHに設定されている必要があります
-            
-            ## 🔧 インストール（オプション）
-            
-            ### システムPATHに追加
-            
-            **Linux:**
-            ```bash
-            # バイナリを /usr/local/bin に移動
-            sudo mv learning-programming-app-linux-x64 /usr/local/bin/learning-programming-app
-            
-            # どこからでも実行可能
-            learning-programming-app --help
-            ```
-            
-            **Windows:**
-            1. `learning-programming-app-windows-x64.exe` を適当なフォルダ（例：`C:\tools\`）に配置
-            2. そのフォルダをシステムのPATH環境変数に追加
-            3. コマンドプロンプトから `learning-programming-app-windows-x64.exe` で実行
-            
-            ## 📚 使用例
-            
-            ### 基本的な学習フロー
-            
-            1. **監視開始**
-            ```bash
-            ./learning-programming-app-linux-x64 watch
-            ```
-            
-            2. **ファイル編集**
-            - `examples/section1-basics/hello_world.py` を開く
-            - コードを編集して保存
-            - 自動的に実行結果が表示される
-            
-            3. **進捗確認**
-            ```bash
-            # 実行履歴を確認
-            ./learning-programming-app-linux-x64 history --limit 5
-            
-            # 統計情報を確認
-            ./learning-programming-app-linux-x64 stats
-            ```
-            
-            ### Go学習問題の生成と使用
-            
-            1. **問題生成**
-            ```bash
-            ./learning-programming-app-linux-x64 generate-go --output ./my-go-learning
-            ```
-            
-            2. **生成された問題で学習**
-            ```bash
-            # 生成されたディレクトリを監視
-            ./learning-programming-app-linux-x64 watch --directory ./my-go-learning
-            ```
-            
-            ## 🐛 トラブルシューティング
-            
-            ### よくある問題
-            
-            **1. "uv: command not found" または "python: command not found"**
-            - uvまたはPythonがインストールされていない、またはPATHに設定されていません
-            - 推奨: `uv` をインストール（https://docs.astral.sh/uv/getting-started/installation/）
-            - または Python 3.x をインストールし、`python` または `python3` コマンドが使用可能か確認してください
-            
-            **2. "go: command not found"**
-            - Goがインストールされていない、またはPATHに設定されていません
-            - Go 1.18以降をインストールし、`go` コマンドが使用可能か確認してください
-            
-            **3. "permission denied" (Linux)**
-            - バイナリに実行権限が付与されていません
-            - `chmod +x <バイナリファイル名>` を実行してください
-            
-            ## 📖 詳細なドキュメント
-            
-            より詳細な使用方法については、プロジェクトのREADME.mdを参照してください：
-            https://github.com/[your-username]/learning-programming-app
-            
-            ## 🆕 このバージョンの新機能
-            
-            - ファイル監視による自動実行
-            - Python (.py) および Go (.go) ファイルのサポート
-            - 実行履歴の永続化（SQLite）
-            - 統計情報の表示
-            - Go学習問題の自動生成
-            - エラー耐性のある継続動作
-            
-            ## 📞 サポート
-            
-            問題が発生した場合は、GitHubのIssuesページで報告してください：
-            https://github.com/[your-username]/learning-programming-app/issues
-          files: |
-            artifacts/learning-programming-app-windows-x64.exe/learning-programming-app.exe
-            BINARY_README.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get project name
+      id: project_name
+      run: echo "name=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')" >> $GITHUB_OUTPUT
+
+    - name: Create release package
+      run: |
+        mkdir -p release-package
+        cp target/release/${{ steps.project_name.outputs.name }} release-package/
+        cp README.md release-package/
+        cd release-package
+        zip -r ../${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-linux-x64.zip .
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-linux-x64.zip
+        body: |
+          ## 使用方法
+          
+          1. バイナリファイルをダウンロード
+          2. 実行権限を付与: `chmod +x ${{ steps.project_name.outputs.name }}`
+          3. 実行: `./${{ steps.project_name.outputs.name }} --dir /path/to/watch/directory`
+          
+          詳細な使用方法はREADME.mdを参照してください。
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
