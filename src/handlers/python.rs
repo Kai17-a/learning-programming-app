@@ -23,8 +23,8 @@ impl PythonHandler {
 
     /// Detect the appropriate Python command for the current environment
     fn detect_python_command() -> String {
-        // Try python3 first (common on Linux/macOS), then python
-        for cmd in ["python3", "python"] {
+        // Try uv first (modern Python package manager), then fallback to python3/python
+        for cmd in ["uv", "python3", "python"] {
             if std::process::Command::new(cmd)
                 .arg("--version")
                 .output()
@@ -33,8 +33,8 @@ impl PythonHandler {
                 return cmd.to_string();
             }
         }
-        // Fallback to python if detection fails
-        "python".to_string()
+        // Fallback to uv if detection fails
+        "uv".to_string()
     }
 
     /// Create a new PythonHandler with custom python command
@@ -53,11 +53,20 @@ impl PythonHandler {
         let start_time = Instant::now();
         let file_path = file_path.as_ref();
 
-        let output = Command::new(&self.python_command)
-            .arg(file_path)
-            .output()
-            .await
-            .map_err(|e| anyhow!("Failed to execute python command: {}", e))?;
+        let output = if self.python_command == "uv" {
+            Command::new(&self.python_command)
+                .args(["run", "python"])
+                .arg(file_path)
+                .output()
+                .await
+                .map_err(|e| anyhow!("Failed to execute uv command: {}", e))?
+        } else {
+            Command::new(&self.python_command)
+                .arg(file_path)
+                .output()
+                .await
+                .map_err(|e| anyhow!("Failed to execute python command: {}", e))?
+        };
 
         let execution_time = start_time.elapsed();
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
@@ -71,12 +80,21 @@ impl PythonHandler {
     async fn check_syntax(&self, file_path: impl AsRef<Path>) -> Result<ValidationResult> {
         let file_path = file_path.as_ref();
 
-        let output = Command::new(&self.python_command)
-            .args(["-m", "py_compile"])
-            .arg(file_path)
-            .output()
-            .await
-            .map_err(|e| anyhow!("Failed to execute syntax check: {}", e))?;
+        let output = if self.python_command == "uv" {
+            Command::new(&self.python_command)
+                .args(["run", "python", "-m", "py_compile"])
+                .arg(file_path)
+                .output()
+                .await
+                .map_err(|e| anyhow!("Failed to execute uv syntax check: {}", e))?
+        } else {
+            Command::new(&self.python_command)
+                .args(["-m", "py_compile"])
+                .arg(file_path)
+                .output()
+                .await
+                .map_err(|e| anyhow!("Failed to execute syntax check: {}", e))?
+        };
 
         if output.status.success() {
             Ok(ValidationResult::valid())
@@ -126,10 +144,19 @@ impl LanguageHandler for PythonHandler {
     }
 
     fn get_command(&self, file_path: &Path) -> Vec<String> {
-        vec![
-            self.python_command.clone(),
-            file_path.to_string_lossy().to_string(),
-        ]
+        if self.python_command == "uv" {
+            vec![
+                self.python_command.clone(),
+                "run".to_string(),
+                "python".to_string(),
+                file_path.to_string_lossy().to_string(),
+            ]
+        } else {
+            vec![
+                self.python_command.clone(),
+                file_path.to_string_lossy().to_string(),
+            ]
+        }
     }
 
     fn get_extension(&self) -> &'static str {

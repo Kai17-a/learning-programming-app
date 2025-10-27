@@ -93,9 +93,18 @@ fn test_python_handler_get_command() {
 
     let command = handler.get_command(file_path);
 
-    assert_eq!(command.len(), 2);
-    assert_eq!(command[0], "python");
-    assert_eq!(command[1], "test.py");
+    // Environment-dependent: could be uv, python3, or python
+    if command[0] == "uv" {
+        assert_eq!(command.len(), 4);
+        assert_eq!(command[0], "uv");
+        assert_eq!(command[1], "run");
+        assert_eq!(command[2], "python");
+        assert_eq!(command[3], "test.py");
+    } else {
+        assert_eq!(command.len(), 2);
+        assert!(command[0] == "python" || command[0] == "python3");
+        assert_eq!(command[1], "test.py");
+    }
 }
 
 #[test]

@@ -72,7 +72,7 @@ jobs:
   release:
     name: Create Release
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.create_release == 'true'))
     
     steps:
@@ -158,8 +158,9 @@ jobs:
         ## 📋 必要な環境
         
         ### Python ファイル実行用
-        - **Python**: 3.x 以降
-        - コマンド: `python` または `python3` がPATHに設定されている必要があります
+        - **uv**: 推奨（高速なPythonパッケージマネージャー）
+        - **Python**: 3.x 以降（uvがない場合のフォールバック）
+        - コマンド: `uv`、`python3`、または `python` がPATHに設定されている必要があります
         
         ### Go ファイル実行用
         - **Go**: 1.18 以降
@@ -223,9 +224,10 @@ jobs:
         
         ### よくある問題
         
-        **1. "python: command not found"**
-        - Pythonがインストールされていない、またはPATHに設定されていません
-        - Python 3.x をインストールし、`python` または `python3` コマンドが使用可能か確認してください
+        **1. "uv: command not found" または "python: command not found"**
+        - uvまたはPythonがインストールされていない、またはPATHに設定されていません
+        - 推奨: `uv` をインストール（https://docs.astral.sh/uv/getting-started/installation/）
+        - または Python 3.x をインストールし、`python` または `python3` コマンドが使用可能か確認してください
         
         **2. "go: command not found"**
         - Goがインストールされていない、またはPATHに設定されていません
@@ -282,7 +284,7 @@ jobs:
           
           ### 📋 必要な環境
           
-          - **Python**: 3.x（Pythonファイル実行用）
+          - **uv**: 推奨（Pythonファイル実行用）または **Python**: 3.x
           - **Go**: 1.18以降（Goファイル実行用）
           
           詳細な使用方法は `BINARY_README.md` を参照してください。
