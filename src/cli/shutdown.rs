@@ -45,15 +45,15 @@ impl ShutdownHandler {
     #[allow(dead_code)]
     pub async fn cleanup(&self) -> Result<()> {
         println!("{} Performing cleanup...", style("🧹").bold());
-        
+
         // Add any cleanup operations here
         // For example: closing database connections, stopping file watchers, etc.
-        
+
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-        
+
         println!("{} Cleanup completed", style("✓").green().bold());
         info!("Application cleanup completed successfully");
-        
+
         Ok(())
     }
 
@@ -62,17 +62,17 @@ impl ShutdownHandler {
     pub async fn handle_shutdown(&self) -> Result<()> {
         self.wait_for_shutdown().await?;
         self.cleanup().await?;
-        
+
         println!("{} Application terminated gracefully", style("👋").bold());
         info!("Application terminated gracefully");
-        
+
         Ok(())
     }
 
     #[cfg(unix)]
     async fn wait_for_sigterm(&self) -> Result<()> {
         use tokio::signal::unix::{signal, SignalKind};
-        
+
         let mut sigterm = signal(SignalKind::terminate())?;
         sigterm.recv().await;
         Ok(())
@@ -96,7 +96,9 @@ impl Default for ShutdownHandler {
 /// Resource cleanup trait for components that need cleanup on shutdown
 #[allow(dead_code)]
 pub trait Cleanup {
-    fn cleanup(&self) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + '_>>;
+    fn cleanup(
+        &self,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + '_>>;
 }
 
 /// Manages multiple resources that need cleanup
@@ -166,7 +168,10 @@ mod tests {
         }
 
         impl Cleanup for TestResource {
-            fn cleanup(&self) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + '_>> {
+            fn cleanup(
+                &self,
+            ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + '_>>
+            {
                 let cleanup_called = self.cleanup_called.clone();
                 Box::pin(async move {
                     cleanup_called.store(true, Ordering::SeqCst);
@@ -190,7 +195,7 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_shutdown_timeout() {
         let handler = ShutdownHandler::new();
-        
+
         // This should timeout since we're not sending any signals
         let result = timeout(Duration::from_millis(100), handler.wait_for_shutdown()).await;
         assert!(result.is_err()); // Should timeout
