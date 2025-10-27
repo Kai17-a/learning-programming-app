@@ -1,9 +1,9 @@
+use crate::utils::errors::ErrorHandler;
 use anyhow::Result;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc;
-use tracing::{debug, info, warn, error};
-use crate::utils::errors::ErrorHandler;
+use tracing::{debug, error, info, warn};
 
 /// Handler for processing file change events with filtering capabilities
 #[allow(dead_code)]
@@ -20,7 +20,7 @@ impl FileChangeEventHandler {
     pub fn new() -> Self {
         let mut supported_extensions = HashSet::new();
         supported_extensions.insert("py".to_string());
-        
+
         Self {
             supported_extensions,
             event_receiver: None,
@@ -32,7 +32,7 @@ impl FileChangeEventHandler {
     /// Create a new event handler with custom supported extensions
     pub fn with_extensions(extensions: Vec<String>) -> Self {
         let supported_extensions = extensions.into_iter().collect();
-        
+
         Self {
             supported_extensions,
             event_receiver: None,
@@ -68,7 +68,7 @@ impl FileChangeEventHandler {
     /// Check if a file path should be processed based on its extension
     pub fn should_process_file(&self, file_path: impl AsRef<Path>) -> bool {
         let path = file_path.as_ref();
-        
+
         // Check if it's a file
         if !path.is_file() {
             debug!("Skipping non-file path: {}", path.display());
@@ -89,7 +89,10 @@ impl FileChangeEventHandler {
             }
         }
 
-        debug!("File {} has no extension or invalid extension", path.display());
+        debug!(
+            "File {} has no extension or invalid extension",
+            path.display()
+        );
         false
     }
 
@@ -112,11 +115,15 @@ impl FileChangeEventHandler {
     /// Ensures the event loop continues even when individual file processing fails
     pub async fn start_processing(&mut self) -> Result<()> {
         info!("Starting file change event processing with error recovery");
-        
-        let mut receiver = self.event_receiver.take()
+
+        let mut receiver = self
+            .event_receiver
+            .take()
             .ok_or_else(|| anyhow::anyhow!("No event receiver set"))?;
 
-        let callback = self.callback.as_ref()
+        let callback = self
+            .callback
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("No callback function set"))?;
 
         let mut consecutive_errors = 0;
@@ -124,16 +131,16 @@ impl FileChangeEventHandler {
 
         while let Some(file_path) = receiver.recv().await {
             debug!("Received file change event: {}", file_path.display());
-            
+
             // Check if file still exists (it might have been deleted)
             if !file_path.exists() {
                 debug!("File no longer exists, skipping: {}", file_path.display());
                 continue;
             }
-            
+
             if self.should_process_file(&file_path) {
                 info!("Processing file change: {}", file_path.display());
-                
+
                 match callback(file_path.clone()) {
                     Ok(()) => {
                         debug!("Successfully processed file: {}", file_path.display());
@@ -141,7 +148,7 @@ impl FileChangeEventHandler {
                     }
                     Err(e) => {
                         consecutive_errors += 1;
-                        
+
                         // Handle different types of errors appropriately
                         let error_msg = if e.to_string().contains("permission") {
                             self.error_handler.handle_permission_error(&file_path)
@@ -150,9 +157,9 @@ impl FileChangeEventHandler {
                         } else {
                             self.error_handler.handle_execution_error(&e, &file_path)
                         };
-                        
+
                         println!("{}", error_msg);
-                        
+
                         // If too many consecutive errors, log warning but continue
                         if consecutive_errors >= MAX_CONSECUTIVE_ERRORS {
                             error!(
@@ -161,7 +168,7 @@ impl FileChangeEventHandler {
                             );
                             consecutive_errors = 0; // Reset to prevent spam
                         }
-                        
+
                         // Always continue processing other files
                     }
                 }
@@ -173,27 +180,27 @@ impl FileChangeEventHandler {
         info!("File change event processing stopped");
         Ok(())
     }
-    
+
     /// Handle system errors during event processing
     pub fn handle_processing_error(&self, error: &anyhow::Error, file_path: &Path) -> String {
         self.error_handler.handle_execution_error(error, file_path)
     }
-    
+
     /// Recover from event processing errors
     pub async fn recover_from_processing_error(&mut self) -> Result<()> {
         warn!("Attempting to recover from event processing error");
-        
+
         // Clear any pending events and restart processing
         if let Some(mut receiver) = self.event_receiver.take() {
             // Drain any pending events
             while receiver.try_recv().is_ok() {
                 // Discard pending events
             }
-            
+
             // Restore the receiver
             self.event_receiver = Some(receiver);
         }
-        
+
         info!("Event processing recovery completed");
         Ok(())
     }
@@ -212,7 +219,10 @@ impl FileChangeEventHandler {
     }
 
     /// Internal recursive function for getting file stats
-    fn get_file_stats_recursive<'a>(&'a self, dir_path: &'a Path) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<FileStats>> + Send + 'a>> {
+    fn get_file_stats_recursive<'a>(
+        &'a self,
+        dir_path: &'a Path,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<FileStats>> + Send + 'a>> {
         Box::pin(async move {
             let mut stats = FileStats::default();
 
@@ -224,13 +234,13 @@ impl FileChangeEventHandler {
             }
 
             let mut entries = tokio::fs::read_dir(dir_path).await?;
-            
+
             while let Some(entry) = entries.next_entry().await? {
                 let path = entry.path();
-                
+
                 if path.is_file() {
                     stats.total_files += 1;
-                    
+
                     if self.should_process_file(&path) {
                         stats.supported_files += 1;
                     } else {
@@ -294,11 +304,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_with_extensions() {
-        let handler = FileChangeEventHandler::with_extensions(vec![
-            "rs".to_string(),
-            "js".to_string(),
-        ]);
-        
+        let handler =
+            FileChangeEventHandler::with_extensions(vec!["rs".to_string(), "js".to_string()]);
+
         assert!(handler.is_extension_supported("rs"));
         assert!(handler.is_extension_supported("js"));
         assert!(!handler.is_extension_supported("py"));
@@ -307,11 +315,11 @@ mod tests {
     #[tokio::test]
     async fn test_add_remove_extension() {
         let mut handler = FileChangeEventHandler::new();
-        
+
         // Add extension
         handler.add_extension("rs");
         assert!(handler.is_extension_supported("rs"));
-        
+
         // Remove extension
         handler.remove_extension("py");
         assert!(!handler.is_extension_supported("py"));
@@ -321,14 +329,14 @@ mod tests {
     async fn test_should_process_file() {
         let temp_dir = TempDir::new().unwrap();
         let handler = FileChangeEventHandler::new();
-        
+
         // Create test files
         let py_file = temp_dir.path().join("test.py");
         let txt_file = temp_dir.path().join("test.txt");
-        
+
         fs::write(&py_file, "print('hello')").await.unwrap();
         fs::write(&txt_file, "hello").await.unwrap();
-        
+
         assert!(handler.should_process_file(&py_file));
         assert!(!handler.should_process_file(&txt_file));
     }
@@ -337,19 +345,19 @@ mod tests {
     async fn test_filter_supported_files() {
         let temp_dir = TempDir::new().unwrap();
         let handler = FileChangeEventHandler::new();
-        
+
         // Create test files
         let py_file = temp_dir.path().join("test.py");
         let txt_file = temp_dir.path().join("test.txt");
         let rs_file = temp_dir.path().join("test.rs");
-        
+
         fs::write(&py_file, "print('hello')").await.unwrap();
         fs::write(&txt_file, "hello").await.unwrap();
         fs::write(&rs_file, "fn main() {}").await.unwrap();
-        
+
         let files = vec![py_file.clone(), txt_file, rs_file];
         let filtered = handler.filter_supported_files(files);
-        
+
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0], py_file);
     }
@@ -358,14 +366,20 @@ mod tests {
     async fn test_get_file_stats() {
         let temp_dir = TempDir::new().unwrap();
         let handler = FileChangeEventHandler::new();
-        
+
         // Create test files
-        fs::write(temp_dir.path().join("test1.py"), "print('hello')").await.unwrap();
-        fs::write(temp_dir.path().join("test2.py"), "print('world')").await.unwrap();
-        fs::write(temp_dir.path().join("readme.txt"), "readme").await.unwrap();
-        
+        fs::write(temp_dir.path().join("test1.py"), "print('hello')")
+            .await
+            .unwrap();
+        fs::write(temp_dir.path().join("test2.py"), "print('world')")
+            .await
+            .unwrap();
+        fs::write(temp_dir.path().join("readme.txt"), "readme")
+            .await
+            .unwrap();
+
         let stats = handler.get_file_stats(temp_dir.path()).await.unwrap();
-        
+
         assert_eq!(stats.total_files, 3);
         assert_eq!(stats.supported_files, 2);
         assert_eq!(stats.unsupported_files, 1);
@@ -376,32 +390,32 @@ mod tests {
     async fn test_event_processing() {
         let temp_dir = TempDir::new().unwrap();
         let mut handler = FileChangeEventHandler::new();
-        
+
         // Create test file
         let py_file = temp_dir.path().join("test.py");
         fs::write(&py_file, "print('hello')").await.unwrap();
-        
+
         // Set up channels
         let (tx, rx) = mpsc::unbounded_channel();
         handler.set_receiver(rx);
-        
+
         // Set up callback to count processed files
         let counter = Arc::new(AtomicUsize::new(0));
         let counter_clone = counter.clone();
-        
+
         handler.set_callback(move |_path| {
             counter_clone.fetch_add(1, Ordering::SeqCst);
             Ok(())
         });
-        
+
         // Send events
         tx.send(py_file.clone()).unwrap();
         tx.send(temp_dir.path().join("test.txt")).unwrap(); // Should be filtered out
         drop(tx); // Close channel to stop processing
-        
+
         // Process events
         handler.start_processing().await.unwrap();
-        
+
         // Check that only the .py file was processed
         assert_eq!(counter.load(Ordering::SeqCst), 1);
     }

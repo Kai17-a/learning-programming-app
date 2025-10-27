@@ -637,7 +637,7 @@ impl SectionConfig {
 
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
-        let parts: Vec<&str> = input.trim().split_whitespace().collect();
+        let parts: Vec<&str> = input.split_whitespace().collect();
 
         if parts.len() == 1 && parts[0] == "0" {
             return Ok(());
@@ -4955,9 +4955,7 @@ impl GoFileGenerator {
                 formatted_lines.push(formatted_line);
                 indent_level += 1;
             } else if trimmed.starts_with('}') {
-                if indent_level > 0 {
-                    indent_level -= 1;
-                }
+                indent_level = indent_level.saturating_sub(1);
                 let formatted_line = format!("{}{}", "    ".repeat(indent_level), trimmed);
                 formatted_lines.push(formatted_line);
             } else {
@@ -5764,7 +5762,6 @@ func main() {
 
     #[test]
     fn test_generate_generic_problems() {
-        let generator = GoFileGenerator::new("test".to_string());
         let section = Section {
             id: "test-section".to_string(),
             name: "Test Section".to_string(),
@@ -5777,7 +5774,7 @@ func main() {
             }],
         };
 
-        let problems = generator.generate_generic_problems(&section);
+        let problems = GoProblem::generate_progressive_problems_for_section(&section);
         assert_eq!(problems.len(), 10); // Updated to expect 10 problems
         assert!(problems[0].filename.contains("problem01"));
         assert!(problems[0].content.contains("package main"));

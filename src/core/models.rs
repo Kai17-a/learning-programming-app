@@ -28,7 +28,12 @@ impl ExecutionResult {
         }
     }
 
-    pub fn with_success(mut self, output: String, execution_time: Duration, exit_code: i32) -> Self {
+    pub fn with_success(
+        mut self,
+        output: String,
+        execution_time: Duration,
+        exit_code: i32,
+    ) -> Self {
         self.success = true;
         self.output = output;
         self.execution_time = execution_time;
@@ -36,7 +41,12 @@ impl ExecutionResult {
         self
     }
 
-    pub fn with_error(mut self, error_message: String, execution_time: Duration, exit_code: Option<i32>) -> Self {
+    pub fn with_error(
+        mut self,
+        error_message: String,
+        execution_time: Duration,
+        exit_code: Option<i32>,
+    ) -> Self {
         self.success = false;
         self.error_message = Some(error_message);
         self.execution_time = execution_time;
@@ -51,9 +61,9 @@ pub struct ExecutionRecord {
     pub file_path: String,
     pub section: String,
     pub success: bool,
-    pub execution_time: f64,  // seconds
+    pub execution_time: f64, // seconds
     pub timestamp: DateTime<Utc>,
-    pub output_preview: String,  // First 100 chars of output
+    pub output_preview: String, // First 100 chars of output
 }
 
 impl ExecutionRecord {
@@ -61,7 +71,9 @@ impl ExecutionRecord {
         let output_preview = if result.success {
             result.output.chars().take(100).collect()
         } else {
-            result.error_message.as_ref()
+            result
+                .error_message
+                .as_ref()
                 .unwrap_or(&String::new())
                 .chars()
                 .take(100)

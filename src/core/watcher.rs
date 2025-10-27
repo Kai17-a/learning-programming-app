@@ -1,10 +1,10 @@
+use crate::utils::errors::{AppError, ErrorHandler};
 use anyhow::Result;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::{mpsc, RwLock};
 use tracing::{debug, error, info, warn};
-use crate::utils::errors::{ErrorHandler, AppError};
 
 /// Service for watching file system changes
 pub struct FileWatcherService {
@@ -35,7 +35,7 @@ impl FileWatcherService {
         callback: mpsc::UnboundedSender<PathBuf>,
     ) -> Result<()> {
         let dir_path = directory.as_ref().to_path_buf();
-        
+
         // Check if directory exists
         if !dir_path.exists() {
             let error_msg = self.error_handler.handle_file_not_found_error(&dir_path);
@@ -44,7 +44,8 @@ impl FileWatcherService {
         }
 
         if !dir_path.is_dir() {
-            let app_error = AppError::execution(format!("Path is not a directory: {}", dir_path.display()));
+            let app_error =
+                AppError::execution(format!("Path is not a directory: {}", dir_path.display()));
             let anyhow_error: anyhow::Error = app_error.into();
             let error_msg = self.error_handler.handle_system_error(&anyhow_error);
             println!("{}", error_msg);
@@ -56,7 +57,10 @@ impl FileWatcherService {
             warn!("Error stopping previous watcher: {}", e);
         }
 
-        info!("Starting file watcher for directory: {}", dir_path.display());
+        info!(
+            "Starting file watcher for directory: {}",
+            dir_path.display()
+        );
 
         // Store the callback sender
         {
@@ -71,7 +75,7 @@ impl FileWatcherService {
             match res {
                 Ok(event) => {
                     debug!("File system event: {:?}", event);
-                    
+
                     // Filter for modify events on files
                     if matches!(event.kind, EventKind::Modify(_)) {
                         for path in event.paths {
@@ -128,10 +132,13 @@ impl FileWatcherService {
             dirs_guard.clear();
             dirs_guard.push(dir_path.clone());
         }
-        
+
         self.is_watching.store(true, Ordering::SeqCst);
-        
-        info!("File watcher started successfully for: {}", dir_path.display());
+
+        info!(
+            "File watcher started successfully for: {}",
+            dir_path.display()
+        );
         Ok(())
     }
 
@@ -163,7 +170,7 @@ impl FileWatcherService {
         }
 
         self.is_watching.store(false, Ordering::SeqCst);
-        
+
         info!("File watcher stopped successfully");
         Ok(())
     }
@@ -199,19 +206,19 @@ impl FileWatcherService {
             "Not watching".to_string()
         }
     }
-    
+
     /// Attempt to recover from watcher errors by restarting
     #[allow(dead_code)]
     pub async fn recover_from_error(&self) -> Result<()> {
         warn!("Attempting to recover from file watcher error");
-        
+
         // Get current watched directories
         let dirs = self.get_watched_directories().await;
         let sender = {
             let sender_guard = self.event_sender.read().await;
             sender_guard.clone()
         };
-        
+
         if let Some(sender) = sender {
             // Try to restart watching for each directory
             for dir in dirs {
@@ -228,7 +235,7 @@ impl FileWatcherService {
             Err(anyhow::anyhow!("No event sender available for recovery"))
         }
     }
-    
+
     /// Handle permission errors gracefully
     #[allow(dead_code)]
     pub fn handle_permission_error(&self, path: impl AsRef<Path>) -> String {
@@ -261,7 +268,7 @@ mod tests {
     async fn test_start_watching_nonexistent_directory() {
         let service = FileWatcherService::new();
         let (tx, _rx) = mpsc::unbounded_channel();
-        
+
         let result = service.start_watching("/nonexistent/path", tx).await;
         assert!(result.is_err());
         assert!(!service.is_watching());
@@ -272,11 +279,11 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let service = FileWatcherService::new();
         let (tx, _rx) = mpsc::unbounded_channel();
-        
+
         let result = service.start_watching(temp_dir.path(), tx).await;
         assert!(result.is_ok());
         assert!(service.is_watching());
-        
+
         let watched_dirs = service.get_watched_directories().await;
         assert_eq!(watched_dirs.len(), 1);
         assert_eq!(watched_dirs[0], temp_dir.path());
@@ -287,11 +294,11 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let service = FileWatcherService::new();
         let (tx, _rx) = mpsc::unbounded_channel();
-        
+
         // Start watching
         service.start_watching(temp_dir.path(), tx).await.unwrap();
         assert!(service.is_watching());
-        
+
         // Stop watching
         let result = service.stop_watching().await;
         assert!(result.is_ok());
@@ -304,24 +311,24 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let service = FileWatcherService::new();
         let (tx, mut rx) = mpsc::unbounded_channel();
-        
+
         // Start watching
         service.start_watching(temp_dir.path(), tx).await.unwrap();
-        
+
         // Create a test file
         let test_file = temp_dir.path().join("test.py");
         fs::write(&test_file, "print('hello')").await.unwrap();
-        
+
         // Wait a bit for the initial create event to settle
         tokio::time::sleep(Duration::from_millis(100)).await;
-        
+
         // Modify the file
         fs::write(&test_file, "print('hello world')").await.unwrap();
-        
+
         // Wait for the change event
         let result = timeout(Duration::from_secs(2), rx.recv()).await;
         assert!(result.is_ok());
-        
+
         let changed_path = result.unwrap().unwrap();
         assert_eq!(changed_path, test_file);
     }
@@ -329,16 +336,16 @@ mod tests {
     #[tokio::test]
     async fn test_get_status() {
         let service = FileWatcherService::new();
-        
+
         // Initially not watching
         let status = service.get_status().await;
         assert_eq!(status, "Not watching");
-        
+
         // Start watching
         let temp_dir = TempDir::new().unwrap();
         let (tx, _rx) = mpsc::unbounded_channel();
         service.start_watching(temp_dir.path(), tx).await.unwrap();
-        
+
         let status = service.get_status().await;
         assert!(status.starts_with("Watching:"));
         assert!(status.contains(&temp_dir.path().display().to_string()));
