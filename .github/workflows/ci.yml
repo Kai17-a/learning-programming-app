@@ -12,7 +12,7 @@ env:
 jobs:
   check:
     name: Check
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -27,7 +27,7 @@ jobs:
 
   test:
     name: Test Suite
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -42,7 +42,7 @@ jobs:
 
   fmt:
     name: Rustfmt
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -52,7 +52,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -69,7 +69,7 @@ jobs:
 
   security_audit:
     name: Security Audit
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: rustsec/audit-check@v1.4.1
@@ -78,7 +78,7 @@ jobs:
 
   coverage:
     name: Code Coverage
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
