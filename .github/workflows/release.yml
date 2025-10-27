@@ -29,12 +29,6 @@ jobs:
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             name: learning-programming-app-windows-x64.exe
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            name: learning-programming-app-macos-x64
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            name: learning-programming-app-macos-arm64
     
     runs-on: ${{ matrix.os }}
     
@@ -122,8 +116,6 @@ jobs:
         
         - **Linux (x64)**: `learning-programming-app-linux-x64`
         - **Windows (x64)**: `learning-programming-app-windows-x64.exe`
-        - **macOS (Intel)**: `learning-programming-app-macos-x64`
-        - **macOS (Apple Silicon)**: `learning-programming-app-macos-arm64`
         
         ## 🚀 クイックスタート
         
@@ -131,17 +123,11 @@ jobs:
         
         お使いのプラットフォームに対応するバイナリをダウンロードしてください。
         
-        ### 2. 実行権限の付与（Linux/macOS）
+        ### 2. 実行権限の付与（Linux）
         
         ```bash
         # Linux
         chmod +x learning-programming-app-linux-x64
-        
-        # macOS (Intel)
-        chmod +x learning-programming-app-macos-x64
-        
-        # macOS (Apple Silicon)
-        chmod +x learning-programming-app-macos-arm64
         ```
         
         ### 3. 基本的な使用方法
@@ -183,7 +169,7 @@ jobs:
         
         ### システムPATHに追加
         
-        **Linux/macOS:**
+        **Linux:**
         ```bash
         # バイナリを /usr/local/bin に移動
         sudo mv learning-programming-app-linux-x64 /usr/local/bin/learning-programming-app
@@ -245,13 +231,9 @@ jobs:
         - Goがインストールされていない、またはPATHに設定されていません
         - Go 1.18以降をインストールし、`go` コマンドが使用可能か確認してください
         
-        **3. "permission denied" (Linux/macOS)**
+        **3. "permission denied" (Linux)**
         - バイナリに実行権限が付与されていません
         - `chmod +x <バイナリファイル名>` を実行してください
-        
-        **4. macOSで "cannot be opened because the developer cannot be verified"**
-        - システム設定 > プライバシーとセキュリティ で許可するか
-        - `xattr -d com.apple.quarantine <バイナリファイル名>` を実行してください
         
         ## 📖 詳細なドキュメント
         
@@ -290,13 +272,11 @@ jobs:
           
           - **Linux (x64)**: `learning-programming-app-linux-x64`
           - **Windows (x64)**: `learning-programming-app-windows-x64.exe`
-          - **macOS (Intel)**: `learning-programming-app-macos-x64`
-          - **macOS (Apple Silicon)**: `learning-programming-app-macos-arm64`
           
           ### 🔧 使用方法
           
           1. バイナリをダウンロード
-          2. 実行権限を付与（Linux/macOS: `chmod +x <バイナリ名>`）
+          2. 実行権限を付与（Linux: `chmod +x <バイナリ名>`）
           3. `./バイナリ名 --help` でヘルプを確認
           4. `./バイナリ名 watch` でファイル監視を開始
           
@@ -318,8 +298,6 @@ jobs:
         files: |
           artifacts/learning-programming-app-linux-x64/learning-programming-app-linux-x64
           artifacts/learning-programming-app-windows-x64.exe/learning-programming-app-windows-x64.exe
-          artifacts/learning-programming-app-macos-x64/learning-programming-app-macos-x64
-          artifacts/learning-programming-app-macos-arm64/learning-programming-app-macos-arm64
           BINARY_README.md
         draft: false
         prerelease: false
