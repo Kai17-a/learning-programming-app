@@ -1,0 +1,342 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Run tests
+      run: cargo test --verbose
+
+  build:
+    name: Build Release Binaries
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: learning-programming-app-linux-x64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            name: learning-programming-app-windows-x64.exe
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: learning-programming-app-macos-x64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: learning-programming-app-macos-arm64
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Build release binary
+      run: cargo build --release --target ${{ matrix.target }}
+      
+    - name: Create binary directory
+      run: mkdir -p binaries
+      
+    - name: Copy binary (Unix)
+      if: matrix.os != 'windows-latest'
+      run: cp target/${{ matrix.target }}/release/learning-programming-app binaries/${{ matrix.name }}
+      
+    - name: Copy binary (Windows)
+      if: matrix.os == 'windows-latest'
+      run: copy target\${{ matrix.target }}\release\learning-programming-app.exe binaries\${{ matrix.name }}
+      
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.name }}
+        path: binaries/${{ matrix.name }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Get version from Cargo.toml
+      id: version
+      run: |
+        VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+        echo "version=v$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+        
+    - name: Check if tag exists
+      id: tag_check
+      run: |
+        if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Download all artifacts
+      if: steps.tag_check.outputs.exists == 'false'
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+        
+    - name: Create binary README
+      if: steps.tag_check.outputs.exists == 'false'
+      run: |
+        cat > BINARY_README.md << 'EOF'
+        # Learning Programming App - Binary Release
+        
+        プログラミング学習者向けのファイル監視型自動実行CLIアプリケーション
+        
+        ## 📦 バイナリファイル
+        
+        このリリースには以下のプラットフォーム用のバイナリが含まれています：
+        
+        - **Linux (x64)**: `learning-programming-app-linux-x64`
+        - **Windows (x64)**: `learning-programming-app-windows-x64.exe`
+        - **macOS (Intel)**: `learning-programming-app-macos-x64`
+        - **macOS (Apple Silicon)**: `learning-programming-app-macos-arm64`
+        
+        ## 🚀 クイックスタート
+        
+        ### 1. バイナリのダウンロード
+        
+        お使いのプラットフォームに対応するバイナリをダウンロードしてください。
+        
+        ### 2. 実行権限の付与（Linux/macOS）
+        
+        ```bash
+        # Linux
+        chmod +x learning-programming-app-linux-x64
+        
+        # macOS (Intel)
+        chmod +x learning-programming-app-macos-x64
+        
+        # macOS (Apple Silicon)
+        chmod +x learning-programming-app-macos-arm64
+        ```
+        
+        ### 3. 基本的な使用方法
+        
+        ```bash
+        # ヘルプを表示
+        ./learning-programming-app-linux-x64 --help
+        
+        # ファイル監視を開始（デフォルト: ./examples）
+        ./learning-programming-app-linux-x64 watch
+        
+        # 特定のディレクトリを監視
+        ./learning-programming-app-linux-x64 watch --directory ./my-exercises
+        
+        # 利用可能なセクションを表示
+        ./learning-programming-app-linux-x64 sections
+        
+        # 実行履歴を表示
+        ./learning-programming-app-linux-x64 history
+        
+        # 統計情報を表示
+        ./learning-programming-app-linux-x64 stats
+        
+        # Go学習問題を生成
+        ./learning-programming-app-linux-x64 generate-go
+        ```
+        
+        ## 📋 必要な環境
+        
+        ### Python ファイル実行用
+        - **Python**: 3.x 以降
+        - コマンド: `python` または `python3` がPATHに設定されている必要があります
+        
+        ### Go ファイル実行用
+        - **Go**: 1.18 以降
+        - コマンド: `go` がPATHに設定されている必要があります
+        
+        ## 🔧 インストール（オプション）
+        
+        ### システムPATHに追加
+        
+        **Linux/macOS:**
+        ```bash
+        # バイナリを /usr/local/bin に移動
+        sudo mv learning-programming-app-linux-x64 /usr/local/bin/learning-programming-app
+        
+        # どこからでも実行可能
+        learning-programming-app --help
+        ```
+        
+        **Windows:**
+        1. `learning-programming-app-windows-x64.exe` を適当なフォルダ（例：`C:\tools\`）に配置
+        2. そのフォルダをシステムのPATH環境変数に追加
+        3. コマンドプロンプトから `learning-programming-app-windows-x64.exe` で実行
+        
+        ## 📚 使用例
+        
+        ### 基本的な学習フロー
+        
+        1. **監視開始**
+        ```bash
+        ./learning-programming-app-linux-x64 watch
+        ```
+        
+        2. **ファイル編集**
+        - `examples/section1-basics/hello_world.py` を開く
+        - コードを編集して保存
+        - 自動的に実行結果が表示される
+        
+        3. **進捗確認**
+        ```bash
+        # 実行履歴を確認
+        ./learning-programming-app-linux-x64 history --limit 5
+        
+        # 統計情報を確認
+        ./learning-programming-app-linux-x64 stats
+        ```
+        
+        ### Go学習問題の生成と使用
+        
+        1. **問題生成**
+        ```bash
+        ./learning-programming-app-linux-x64 generate-go --output ./my-go-learning
+        ```
+        
+        2. **生成された問題で学習**
+        ```bash
+        # 生成されたディレクトリを監視
+        ./learning-programming-app-linux-x64 watch --directory ./my-go-learning
+        ```
+        
+        ## 🐛 トラブルシューティング
+        
+        ### よくある問題
+        
+        **1. "python: command not found"**
+        - Pythonがインストールされていない、またはPATHに設定されていません
+        - Python 3.x をインストールし、`python` または `python3` コマンドが使用可能か確認してください
+        
+        **2. "go: command not found"**
+        - Goがインストールされていない、またはPATHに設定されていません
+        - Go 1.18以降をインストールし、`go` コマンドが使用可能か確認してください
+        
+        **3. "permission denied" (Linux/macOS)**
+        - バイナリに実行権限が付与されていません
+        - `chmod +x <バイナリファイル名>` を実行してください
+        
+        **4. macOSで "cannot be opened because the developer cannot be verified"**
+        - システム設定 > プライバシーとセキュリティ で許可するか
+        - `xattr -d com.apple.quarantine <バイナリファイル名>` を実行してください
+        
+        ## 📖 詳細なドキュメント
+        
+        より詳細な使用方法については、プロジェクトのREADME.mdを参照してください：
+        https://github.com/[your-username]/learning-programming-app
+        
+        ## 🆕 このバージョンの新機能
+        
+        - ファイル監視による自動実行
+        - Python (.py) および Go (.go) ファイルのサポート
+        - 実行履歴の永続化（SQLite）
+        - 統計情報の表示
+        - Go学習問題の自動生成
+        - エラー耐性のある継続動作
+        
+        ## 📞 サポート
+        
+        問題が発生した場合は、GitHubのIssuesページで報告してください：
+        https://github.com/[your-username]/learning-programming-app/issues
+        EOF
+        
+    - name: Create release
+      if: steps.tag_check.outputs.exists == 'false'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: Release ${{ steps.version.outputs.version }}
+        body: |
+          ## 🚀 Learning Programming App ${{ steps.version.outputs.version }}
+          
+          プログラミング学習者向けのファイル監視型自動実行CLIアプリケーション
+          
+          ### 📦 ダウンロード
+          
+          お使いのプラットフォームに対応するバイナリをダウンロードしてください：
+          
+          - **Linux (x64)**: `learning-programming-app-linux-x64`
+          - **Windows (x64)**: `learning-programming-app-windows-x64.exe`
+          - **macOS (Intel)**: `learning-programming-app-macos-x64`
+          - **macOS (Apple Silicon)**: `learning-programming-app-macos-arm64`
+          
+          ### 🔧 使用方法
+          
+          1. バイナリをダウンロード
+          2. 実行権限を付与（Linux/macOS: `chmod +x <バイナリ名>`）
+          3. `./バイナリ名 --help` でヘルプを確認
+          4. `./バイナリ名 watch` でファイル監視を開始
+          
+          ### 📋 必要な環境
+          
+          - **Python**: 3.x（Pythonファイル実行用）
+          - **Go**: 1.18以降（Goファイル実行用）
+          
+          詳細な使用方法は `BINARY_README.md` を参照してください。
+          
+          ### 🆕 主な機能
+          
+          - ファイル保存時の自動実行
+          - Python/Go言語サポート
+          - 実行履歴の永続化
+          - 統計情報表示
+          - Go学習問題自動生成
+          - エラー耐性のある継続動作
+        files: |
+          artifacts/learning-programming-app-linux-x64/learning-programming-app-linux-x64
+          artifacts/learning-programming-app-windows-x64.exe/learning-programming-app-windows-x64.exe
+          artifacts/learning-programming-app-macos-x64/learning-programming-app-macos-x64
+          artifacts/learning-programming-app-macos-arm64/learning-programming-app-macos-arm64
+          BINARY_README.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
