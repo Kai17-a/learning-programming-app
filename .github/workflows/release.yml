@@ -3,8 +3,6 @@ name: Build and Release
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       create_release:
@@ -13,61 +11,37 @@ on:
         default: 'true'
         type: boolean
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build:
     name: Build Release Binaries
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            name: learning-programming-app-linux-x64
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            name: learning-programming-app-windows-x64.exe
-    
-    runs-on: ${{ matrix.os }}
+    rruns-on: windows-latest
     
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: ${{ matrix.target }}
+
+    - name: Cache Cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
         
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        
+    - name: Cache Cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: cargo-build-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-build-${{ runner.os }}-
+
     - name: Build release binary
-      run: cargo build --release --target ${{ matrix.target }}
-      
-    - name: Create binary directory
-      run: mkdir -p binaries
-      
-    - name: Copy binary (Unix)
-      if: matrix.os != 'windows-latest'
-      run: cp target/${{ matrix.target }}/release/learning-programming-app binaries/${{ matrix.name }}
-      
-    - name: Copy binary (Windows)
-      if: matrix.os == 'windows-latest'
-      run: copy target\${{ matrix.target }}\release\learning-programming-app.exe binaries\${{ matrix.name }}
-      
-    - name: Upload binary artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ matrix.name }}
-        path: binaries/${{ matrix.name }}
+      run: cargo build --release
 
   release:
     name: Create Release
