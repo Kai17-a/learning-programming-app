@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache cargo index
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-index-
+
+    - name: Cache target directory
+      uses: actions/cache@v4
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-target-
+
+    - name: Build release binary
+      run: cargo build --release
+
+    - name: Get project name
+      id: project_name
+      run: echo "name=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')" >> $GITHUB_OUTPUT
+
+    - name: Create release package
+      run: |
+        mkdir -p release-package
+        cp target/release/${{ steps.project_name.outputs.name }} release-package/
+        cp README.md release-package/
+        cd release-package
+        zip -r ../${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-linux-x64.zip .
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-linux-x64.zip
+        body: |
+          ## 使用方法
+          
+          1. バイナリファイルをダウンロード
+          2. 実行権限を付与: `chmod +x ${{ steps.project_name.outputs.name }}`
+          3. 実行: `./${{ steps.project_name.outputs.name }} --dir /path/to/watch/directory`
+          
+          詳細な使用方法はREADME.mdを参照してください。
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
