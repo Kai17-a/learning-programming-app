@@ -40,11 +40,7 @@ async fn test_complete_system_integration() -> Result<()> {
     )
     .await?;
 
-    // Change to temp directory for testing
-    let original_dir = std::env::current_dir()?;
-    std::env::set_current_dir(&temp_dir)?;
-
-    // Initialize CLI interface (this will create learning_app.db in temp dir)
+    // Initialize CLI interface without changing directory
     let cli = CommandLineInterface::new().await?;
 
     // Test system status
@@ -81,9 +77,6 @@ async fn test_complete_system_integration() -> Result<()> {
     // Test graceful shutdown
     cli.shutdown().await?;
 
-    // Restore original directory
-    std::env::set_current_dir(original_dir)?;
-
     Ok(())
 }
 
@@ -98,11 +91,7 @@ async fn test_cli_file_watching_integration() -> Result<()> {
     let section_dir = examples_dir.join("section1-basics");
     fs::create_dir(&section_dir).await?;
 
-    // Change to temp directory
-    let original_dir = std::env::current_dir()?;
-    std::env::set_current_dir(&temp_dir)?;
-
-    // Initialize CLI interface
+    // Initialize CLI interface without changing directory
     let cli = CommandLineInterface::new().await?;
 
     // Verify watcher is not initially active
@@ -127,9 +116,6 @@ async fn test_cli_file_watching_integration() -> Result<()> {
 
     // Test graceful shutdown
     cli.shutdown().await?;
-
-    // Restore original directory
-    std::env::set_current_dir(original_dir)?;
 
     Ok(())
 }

@@ -59,7 +59,7 @@ async fn test_execute_nonexistent_file() {
     assert!(result
         .error_message
         .unwrap()
-        .contains("File does not exist"));
+        .contains("File not found"));
 }
 
 #[tokio::test]
@@ -77,7 +77,7 @@ async fn test_execute_file_without_extension() {
 
     assert!(!result.success);
     assert!(result.error_message.is_some());
-    assert!(result.error_message.unwrap().contains("no extension"));
+    assert!(result.error_message.unwrap().contains("No file extension"));
 }
 
 #[tokio::test]
@@ -95,7 +95,7 @@ async fn test_execute_unsupported_file_type() {
 
     assert!(!result.success);
     assert!(result.error_message.is_some());
-    assert!(result.error_message.unwrap().contains("No handler found"));
+    assert!(result.error_message.unwrap().contains("Unsupported file type"));
 }
 
 #[tokio::test]
