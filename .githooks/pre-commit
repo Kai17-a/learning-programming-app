@@ -1,0 +1,26 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+# cargo check
+echo "Running cargo check..."
+if ! cargo check; then
+    echo "❌ cargo check failed"
+    exit 1
+fi
+
+# cargo fmt
+echo "Running cargo fmt..."
+if ! cargo fmt --check; then
+    echo "❌ Code formatting issues found. Run 'cargo fmt' to fix them."
+    exit 1
+fi
+
+# cargo clippy
+echo "Running cargo clippy..."
+if ! cargo clippy -- -D warnings; then
+    echo "❌ cargo clippy found warnings or errors"
+    exit 1
+fi
+
+echo "✅ All pre-commit checks passed"
