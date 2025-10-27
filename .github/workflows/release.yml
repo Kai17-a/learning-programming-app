@@ -47,7 +47,7 @@ jobs:
         run: cargo build --release
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: learning-programming-app-windows-x64.exe
           path: target/release/learning-programming-app.exe
