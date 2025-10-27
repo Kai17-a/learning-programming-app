@@ -17,8 +17,24 @@ impl PythonHandler {
     /// Create a new PythonHandler with default python command
     pub fn new() -> Self {
         Self {
-            python_command: "python".to_string(),
+            python_command: Self::detect_python_command(),
         }
+    }
+
+    /// Detect the appropriate Python command for the current environment
+    fn detect_python_command() -> String {
+        // Try python3 first (common on Linux/macOS), then python
+        for cmd in ["python3", "python"] {
+            if std::process::Command::new(cmd)
+                .arg("--version")
+                .output()
+                .is_ok()
+            {
+                return cmd.to_string();
+            }
+        }
+        // Fallback to python if detection fails
+        "python".to_string()
     }
 
     /// Create a new PythonHandler with custom python command

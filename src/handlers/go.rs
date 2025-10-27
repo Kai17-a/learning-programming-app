@@ -16,7 +16,21 @@ impl GoHandler {
     /// Create a new GoHandler with default go command
     pub fn new() -> Self {
         Self {
-            go_command: "go".to_string(),
+            go_command: Self::detect_go_command(),
+        }
+    }
+
+    /// Detect the appropriate Go command for the current environment
+    fn detect_go_command() -> String {
+        if std::process::Command::new("go")
+            .arg("version")
+            .output()
+            .is_ok()
+        {
+            "go".to_string()
+        } else {
+            // Fallback to go if detection fails
+            "go".to_string()
         }
     }
 
