@@ -1,6 +1,6 @@
 use anyhow::Result;
-use learning_programming_app::core::{FileWatcherService};
 use learning_programming_app::core::event_handler::FileChangeEventHandler;
+use learning_programming_app::core::FileWatcherService;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -39,9 +39,7 @@ async fn test_file_watcher_with_event_handler_integration() -> Result<()> {
     assert!(watcher_service.is_watching());
 
     // Start event processing in background
-    let processing_handle = tokio::spawn(async move {
-        event_handler.start_processing().await
-    });
+    let processing_handle = tokio::spawn(async move { event_handler.start_processing().await });
 
     // Give the watcher time to initialize
     sleep(Duration::from_millis(100)).await;
@@ -88,7 +86,11 @@ async fn test_file_watcher_with_event_handler_integration() -> Result<()> {
     // The exact number may vary depending on the file system events
     let count = processed_count.load(Ordering::SeqCst);
     println!("Total processed files: {}", count);
-    assert!(count >= 2, "Expected at least 2 processed files, got {}", count);
+    assert!(
+        count >= 2,
+        "Expected at least 2 processed files, got {}",
+        count
+    );
 
     Ok(())
 }
@@ -140,7 +142,9 @@ async fn test_watcher_error_handling() -> Result<()> {
     let (tx, _rx) = mpsc::unbounded_channel();
 
     // Try to watch non-existent directory
-    let result = watcher_service.start_watching("/non/existent/path", tx).await;
+    let result = watcher_service
+        .start_watching("/non/existent/path", tx)
+        .await;
     assert!(result.is_err());
     assert!(!watcher_service.is_watching());
 
@@ -151,7 +155,7 @@ async fn test_watcher_error_handling() -> Result<()> {
 #[tokio::test]
 async fn test_stop_watcher_when_not_running() -> Result<()> {
     let watcher_service = FileWatcherService::new();
-    
+
     // Should not error when stopping a watcher that's not running
     let result = watcher_service.stop_watching().await;
     assert!(result.is_ok());
@@ -173,14 +177,14 @@ async fn test_watcher_status_reporting() -> Result<()> {
 
     // Start watching
     watcher_service.start_watching(temp_dir.path(), tx).await?;
-    
+
     let status = watcher_service.get_status().await;
     assert!(status.starts_with("Watching:"));
     assert!(status.contains(&temp_dir.path().display().to_string()));
 
     // Stop watching
     watcher_service.stop_watching().await?;
-    
+
     let status = watcher_service.get_status().await;
     assert_eq!(status, "Not watching");
 
@@ -217,10 +221,8 @@ async fn test_event_handler_file_filtering() -> Result<()> {
 #[tokio::test]
 async fn test_event_handler_custom_extensions() -> Result<()> {
     let temp_dir = TempDir::new()?;
-    let mut handler = FileChangeEventHandler::with_extensions(vec![
-        "rs".to_string(),
-        "js".to_string(),
-    ]);
+    let mut handler =
+        FileChangeEventHandler::with_extensions(vec!["rs".to_string(), "js".to_string()]);
 
     // Add another extension
     handler.add_extension("ts");
