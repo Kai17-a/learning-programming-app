@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: Build Release Binaries
-    rruns-on: windows-latest
+    runs-on: windows-latest
     
     steps:
     - uses: actions/checkout@v4
