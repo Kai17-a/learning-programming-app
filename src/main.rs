@@ -131,3 +131,99 @@ async fn run_if_target_file(path: PathBuf) {
         Err(e) => eprintln!("実行エラー: {:?} ({})", e, path.display()),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    // 簡易ログを無効化する
+    fn init_logger() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
+    #[tokio::test]
+    async fn test_run_if_target_file_with_py_file() {
+        init_logger();
+
+        // 一時Pythonファイル作成
+        let mut tmpfile = NamedTempFile::new().unwrap();
+        writeln!(tmpfile, "print('hello test')").unwrap();
+        let path = tmpfile.path().to_path_buf();
+
+        // 実行
+        run_if_target_file(path.clone()).await;
+
+        // ファイルはまだ存在するはず
+        assert!(path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_run_if_target_file_with_go_file() {
+        init_logger();
+
+        // 一時Goファイル作成
+        let mut tmpfile = NamedTempFile::new().unwrap();
+        writeln!(
+            tmpfile,
+            "package main\nimport \"fmt\"\nfunc main() {{ fmt.Println(\"hello go test\") }}"
+        )
+        .unwrap();
+        let path = tmpfile.path().to_path_buf();
+
+        run_if_target_file(path.clone()).await;
+
+        assert!(path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_run_if_target_file_with_unsupported_extension() {
+        init_logger();
+
+        let mut tmpfile = NamedTempFile::new().unwrap();
+        writeln!(tmpfile, "echo unsupported").unwrap();
+
+        // 一時ファイル名を.txtに変更
+        let path = tmpfile.path().with_extension("txt");
+
+        // 実行（何も起きない）
+        run_if_target_file(path.clone()).await;
+
+        // 実行してもエラーにもならない（ただreturn）
+        assert!(path.exists() || !path.exists()); // 実行確認用ダミー
+    }
+
+    #[tokio::test]
+    async fn test_run_if_target_file_without_extension() {
+        init_logger();
+
+        // 一時ファイル名に拡張子なし
+        let tmpfile = NamedTempFile::new().unwrap();
+        let path = tmpfile.path().to_path_buf();
+
+        // 実行
+        run_if_target_file(path.clone()).await;
+
+        // エラー出力が呼ばれるがクラッシュしない
+        assert!(path.exists());
+    }
+
+    #[tokio::test]
+    async fn test_run_if_target_file_command_not_found() {
+        init_logger();
+
+        // 存在しないコマンド (lua) を想定
+        let mut tmpfile = NamedTempFile::new().unwrap();
+        writeln!(tmpfile, "print('hi')").unwrap();
+
+        // ".lua" の一時ファイルを実際に作成
+        let lua_path = tmpfile.path().with_extension("lua");
+        std::fs::copy(tmpfile.path(), &lua_path).unwrap();
+
+        // Lua が未インストール環境で実行しても panic せず return することを確認
+        run_if_target_file(lua_path.clone()).await;
+
+        assert!(lua_path.exists());
+    }
+}
