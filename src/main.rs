@@ -6,6 +6,7 @@ use std::sync::mpsc;
 use std::time::{Duration, Instant};
 use tokio::process::Command;
 use tracing::{error, info};
+use which::which;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -68,7 +69,7 @@ async fn main() -> Result<()> {
 }
 
 async fn run_if_target_file(path: PathBuf) {
-    let target_extensions = ["go", "py"];
+    let target_extensions = ["go", "py", "lua"];
 
     let extension = match path.extension().and_then(|s| s.to_str()) {
         Some(ext) => ext,
@@ -82,12 +83,29 @@ async fn run_if_target_file(path: PathBuf) {
         return;
     }
 
+    let command_name = match extension {
+        "go" => "go",
+        "py" => "python",
+        "lua" => "lua",
+        _ => return,
+    };
+
+    if which(command_name).is_err() {
+        error!(
+            "コマンドが見つかりません: {} (必要な実行環境がインストールされていません)",
+            command_name
+        );
+        return;
+    }
+
     let mut command;
 
     if extension == "go" {
+        // 実行環境存在チェック
         command = Command::new("go");
         command.arg("run").arg(&path);
     } else if extension == "py" {
+        // 実行環境存在チェック
         command = Command::new("python");
         command.arg(&path);
     } else {
