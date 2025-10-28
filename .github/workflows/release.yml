@@ -64,15 +64,29 @@ jobs:
         shell: bash
         run: echo "name=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')" >> $GITHUB_OUTPUT
 
-      - name: Create release package
+      # ===== Linux: zipを使う =====
+      - name: Create release package (Linux)
+        if: runner.os == 'Linux'
         shell: bash
         run: |
+          sudo apt-get update && sudo apt-get install -y zip
           mkdir -p release-package
           cp "target/release/${{ steps.project_name.outputs.name }}${{ matrix.binary_ext }}" release-package/
           cp README.md release-package/
           cp -r example-go release-package || true
           cd release-package
           zip -r "../${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-${{ matrix.artifact_name }}.${{ matrix.zip_ext }}" .
+
+      # ===== Windows: Compress-Archiveを使う =====
+      - name: Create release package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          mkdir release-package
+          Copy-Item "target/release/${{ steps.project_name.outputs.name }}${{ matrix.binary_ext }}" -Destination release-package/
+          Copy-Item "README.md" -Destination release-package/
+          if (Test-Path "example-go") { Copy-Item -Recurse "example-go" -Destination release-package/ }
+          Compress-Archive -Path release-package/* -DestinationPath "${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-${{ matrix.artifact_name }}.${{ matrix.zip_ext }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
