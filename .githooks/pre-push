@@ -23,4 +23,11 @@ if ! cargo clippy -- -D warnings; then
     exit 1
 fi
 
+# cargo test
+echo "Running cart test..."
+if ! cargo test; then
+    echo "❌ cargo test failed"
+    exit 1
+fi
+
 echo "✅ All pre-push checks passed"
