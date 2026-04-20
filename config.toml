@@ -1,0 +1,20 @@
+[languages]
+  [languages.python]
+  extensions = [".py"]
+  command = "python"
+  command_args = []
+
+  [languages.rust]
+  extensions = [".rs"]
+  command = "cargo"
+  command_args = ["run"]
+
+  [languages.ts]
+  extensions = ["js", ".ts"]
+  command = "bun"
+  command_args = []
+
+  [languages.go]
+  extensions = ["go"]
+  command = "go"
+  command_args = ["run"]
