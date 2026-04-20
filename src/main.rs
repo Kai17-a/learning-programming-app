@@ -1,11 +1,12 @@
 use clap::Parser;
+use log::{error, info};
 use notify::{Event, EventKind, RecursiveMode, Result, Watcher};
 use std::collections::HashMap;
+use std::env;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 use tokio::process::Command;
-use tracing::{error, info};
 use which::which;
 
 #[derive(Parser, Debug)]
@@ -20,9 +21,16 @@ async fn main() -> Result<()> {
     // ログ設定
     tracing_subscriber::fmt::init();
 
+    if which("mise").is_err() {
+        error!("miseコマンドが見つかりません(必要な実行環境がインストールされていません)",);
+        std::process::exit(1);
+    }
+
     let args = Args::parse();
     // 監視対象ディレクトリ
     let watch_dir = PathBuf::from(&args.dir);
+
+    let os_type = env::consts::OS;
 
     // ディレクトリ存在確認
     if !watch_dir.is_dir() {
@@ -55,9 +63,22 @@ async fn main() -> Result<()> {
                     }
                     *entry = now;
 
-                    if let EventKind::Modify(_) = event.kind {
-                        // async 処理を別タスクで動かす
-                        tokio::spawn(run_if_target_file(path));
+                    // windows: event.kind=Modify(Any)
+                    // Linux:   event.kind=Access(Open(Any))
+                    println!("event.kind={:?}, path={}", event.kind, path.display());
+
+                    match os_type {
+                        "linux" => {
+                            if let EventKind::Access(_) = event.kind {
+                                tokio::spawn(run_if_target_file(path));
+                            }
+                        }
+                        "windows" => {
+                            if let EventKind::Modify(_) = event.kind {
+                                tokio::spawn(run_if_target_file(path));
+                            }
+                        }
+                        _ => {}
                     }
                 }
             }
