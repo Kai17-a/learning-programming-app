@@ -89,7 +89,7 @@ jobs:
           Compress-Archive -Path release-package/* -DestinationPath "${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-${{ matrix.artifact_name }}.${{ matrix.zip_ext }}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.project_name.outputs.name }}-${{ matrix.artifact_name }}
           path: ${{ steps.project_name.outputs.name }}-${{ github.ref_name }}-${{ matrix.artifact_name }}.${{ matrix.zip_ext }}
